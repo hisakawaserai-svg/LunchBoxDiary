@@ -6,6 +6,29 @@
 //
 
 import SwiftData
+import Foundation
+
+@Model
+final class Event {
+    @Attribute(.unique) var id: UUID = UUID()
+    var name: String
+    
+    init(id: UUID, name: String) {
+        self.id = id
+        self.name = name
+    }
+}
+
+@Model
+final class Who {
+    @Attribute(.unique) var id: UUID = UUID()
+    var name: String
+    
+    init(id: UUID, name: String) {
+        self.id = id
+        self.name = name
+    }
+}
 
 struct Frame: Codable {
     var theme: FrameTheme
