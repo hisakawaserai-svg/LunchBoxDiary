@@ -15,5 +15,7 @@ struct LunchBoxDiaryApp: App {
             ContentView()
         }
         .modelContainer(for: [LunchBox.self, Event.self, Who.self])
+        .environment(\.calendar, Calendar.app)
+        .environment(\.timeZone, Calendar.app.timeZone)
     }
 }
