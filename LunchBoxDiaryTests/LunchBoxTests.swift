@@ -16,7 +16,7 @@ struct LunchBoxTests {
     
     private func makeLunchBox(events: [Event]? = nil) -> LunchBox {
         LunchBox(title: "test", image: Data(), thumbnail: Data(),
-                 date: .now, memo: nil, event: events, who: nil,
+                 date: .now, memo: nil, events: events, who: nil,
                  frame: Frame(theme: .def, color: "#FFFFFF"))
     }
     
@@ -36,7 +36,7 @@ struct LunchBoxTests {
         let fetchDescriptor = FetchDescriptor<LunchBox>()
         let lunche = try context.fetch(fetchDescriptor)
         
-        let names = Set(lunche.first?.event?.map(\.name) ?? [])
+        let names = Set(lunche.first?.events?.map(\.name) ?? [])
         #expect(names == ["Test_Event_1", "Test_Event_2", "Test_Event_3"])
     }
     
