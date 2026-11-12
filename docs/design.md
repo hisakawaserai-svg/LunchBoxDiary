@@ -25,7 +25,7 @@
 ```mermaid
 erDiagram
     LunchBox }o--o| Who : "誰に(1つ)"
-    LunchBox }o--o{ Event : "イベント名(複数)"
+    LunchBox ||--o{ Event : "イベント名(複数)"
 ```
 
 フレームは、別テーブルにせず、`LunchBox` の中に持つ(`Frame`)。
@@ -40,7 +40,7 @@ erDiagram
 | thumbnail | Data | カレンダーのマスやリスト用の小さい画像。小さいので、そのまま持つ |
 | date | Date | 選んだ日付を、日本時間の0時(`startOfDay`)にそろえて保存する。読むときも `startOfDay` で、同じ日かどうかを判定する(4章) |
 | memo | String? | 任意 |
-| events | [Event] | 複数(決定、2026-11-11)。任意(空でもよい)。多対多の書き方は、試作で確認する(試作のコードは、まだ `Event?` の1つ) |
+| events | [Event]? | 複数(決定、2026-11-11)。任意(`nil` または空でもよい)。`LunchBox` が `Event` を複数持つ、1対多で実装済み(決定、2026-11-12)。`Event` 側に、逆向きの参照は持たない |
 | who | Who? | 1つだけ。任意 |
 | frame | Frame | テーマと色。必須 |
 

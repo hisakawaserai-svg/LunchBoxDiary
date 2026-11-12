@@ -18,11 +18,11 @@ final class LunchBox {
     var date: Date
     var memo: String?
     
-    var event: [Event]?
+    var events: [Event]?
     var who: Who?
     var frame: Frame
     
-    init(id: UUID = UUID(), title: String, image: Data, thumbnail: Data, date: Date, memo: String?, event: [Event]?, who: Who?, frame: Frame) {
+    init(id: UUID = UUID(), title: String, image: Data, thumbnail: Data, date: Date, memo: String?, events: [Event]?, who: Who?, frame: Frame) {
         self.id = id
         self.title = title
         self.image = image
@@ -30,7 +30,7 @@ final class LunchBox {
         self.date = date
         self.memo = memo
         
-        self.event = event
+        self.events = events
         self.who = who
         self.frame = frame
     }
