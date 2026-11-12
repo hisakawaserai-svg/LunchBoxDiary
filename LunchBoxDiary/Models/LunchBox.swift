@@ -58,11 +58,11 @@ final class Who {
     }
 }
 
-struct Frame: Codable {
+nonisolated struct Frame: Codable {
     var theme: FrameTheme
     var color: String
 }
 
-enum FrameTheme: String, Codable {
+nonisolated enum FrameTheme: String, Codable {
     case def, stripe, autumn, polaroid, cloud, note, star, mascot
 }
