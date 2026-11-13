@@ -12,7 +12,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     
     // CreateView
-    @State private var screenWidth: CGFloat = 0
+    @State private var screenWidthPt: CGFloat = 0
     @State private var isShowCreate: Bool = false
 
     var body: some View {
@@ -31,12 +31,11 @@ struct ContentView: View {
                 }
         }
         .frame(maxWidth: .infinity)
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { newWidth in
-            print(newWidth)
-            screenWidth = newWidth
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { newWidthPt in
+            screenWidthPt = newWidthPt
         }
         .fullScreenCover(isPresented: $isShowCreate) {
-            CreateView(screenWidth: screenWidth)
+            CreateView(screenWidthPt: screenWidthPt)
         }
     }
 }

@@ -83,7 +83,7 @@ erDiagram
 - `@Model` は class のため、入力欄を記録に直接つなぐと、キャンセルしても元のデータが書き換わる
 - そのため、入力途中の内容は一時的な変数(`@State`)に持つ
 - 保存ボタンを押したときに、記録へ書き込む
-- 親から受け取るだけの値(例: `screenWidth`、`DayView` の `day`)は、`let` で受け取る。`@State` にすると、親が値を変えても、子は最初の値のまま残るため
+- 親から受け取るだけの値(例: `screenWidthPt`、`DayView` の `day`)は、`let` で受け取る。`@State` にすると、親が値を変えても、子は最初の値のまま残るため
 
 ## 4. カレンダー
 
@@ -225,9 +225,9 @@ erDiagram
 - 置き場所: `Logic/ImageResize.swift`
 - 名前の変更(2026-11-13): `detailPx` から変更。詳細画面専用に読めて、役割(画面の幅をpxにする)とずれていたため。画面の倍率と幅は、View から引数で渡す(`scale`、`pt`)
 - 役割: メイン画像の大きさ(px)を返す。画面の幅(pt)× 画面の倍率
-- 設計の変更(2026-11-10): `UIScreen.main` をやめた(非推奨のため)。画面の幅は、一番上の親の View で `.onGeometryChange` を使って取り、`@State var screenWidth` に入れて、`AdditionView` へ引数で渡す
+- 設計の変更(2026-11-10): `UIScreen.main` をやめた(非推奨のため)。画面の幅は、一番上の親の View で `.onGeometryChange` を使って取り、`@State var screenWidthPt` に入れて、`CreateView` へ引数で渡す
 - 倍率は、`@Environment(\.displayScale)` から取る(2026-11-11 に置き換え済み)
-- 流れ: `displayScale × screenWidth`(たとえば 3 × 393 = 1179)
+- 流れ: `displayScale × screenWidthPt`(たとえば 3 × 393 = 1179)
 - global な変数には持たない(どこからでも書き換えられる。複数のウィンドウがあると、値が1つに決まらない)
 - 動作確認: iOS 17 を対象にして、エラーなしで動いた(確認)
 - 未決: 親の View の幅が、0 のときの扱い(最初のレイアウトの前)

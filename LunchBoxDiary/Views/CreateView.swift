@@ -15,7 +15,7 @@ struct CreateView: View {
     
     // 画像縮小に必要な変数
     @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
-    let screenWidth: CGFloat
+    let screenWidthPt: CGFloat
     
     @State private var selectedImage: PhotosPickerItem?
     
@@ -37,7 +37,7 @@ struct CreateView: View {
                     PhotosPicker("写真を選んでください", selection: $selectedImage, matching: .images)
                         .task(id: selectedImage) {
                             guard let data = try? await selectedImage?.loadTransferable(type: Data.self) else { return }
-                            if let mainImg = shrinkAndComp(data, px: screenWidthPx(scale: scale, pt: screenWidth)) {
+                            if let mainImg = shrinkAndComp(data, px: screenWidthPx(scale: scale, pt: screenWidthPt)) {
                                 mainImage = mainImg
                             }
                             if let thumbImg = shrinkAndComp(data) {
@@ -79,5 +79,5 @@ struct CreateView: View {
 }
 
 #Preview {
-    CreateView(screenWidth: 1200)
+    CreateView(screenWidthPt: 1200)
 }
