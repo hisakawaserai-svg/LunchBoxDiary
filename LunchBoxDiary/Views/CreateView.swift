@@ -11,10 +11,12 @@ import PhotosUI
 
 struct CreateView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
     @Environment(\.modelContext) private var modelContext
     
+    // 画像縮小に必要な変数
+    @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
     let screenWidth: CGFloat
+    
     @State private var selectedImage: PhotosPickerItem?
     
     @State private var title: String = ""
@@ -27,18 +29,6 @@ struct CreateView: View {
     @State private var frameTheme: FrameTheme = .def
     @State private var frameColor: Color = .pink
     
-    /// 引数dataを縮小 -> 圧縮 -> Dataに変換
-    func shrinkAndComp(_ data: Data, detailPx: CGFloat = CGFloat(200)) -> Data? {
-        guard let uiImg = UIImage(data: data) else { return nil }
-        guard let shrinkImg = uiImg.preparingThumbnail(of: CGSize(width: detailPx, height: detailPx)) else { return uiImg.jpegData(compressionQuality: 0.5) }
-
-        return shrinkImg.jpegData(compressionQuality: 0.5)
-    }
-    /// 画面サイズpx
-    func detailPx() -> CGFloat {
-        return scale * screenWidth
-    }
-    
     var body: some View {
         NavigationStack {
             Form {
@@ -47,10 +37,10 @@ struct CreateView: View {
                     PhotosPicker("写真を選んでください", selection: $selectedImage, matching: .images)
                         .task(id: selectedImage) {
                             guard let data = try? await selectedImage?.loadTransferable(type: Data.self) else { return }
-                            if let mainImg = shrinkAndComp(data, detailPx: detailPx()){
+                            if let mainImg = shrinkAndComp(data, px: screenWidthPx(scale: scale, pt: screenWidth)) {
                                 mainImage = mainImg
                             }
-                            if let thumbImg = shrinkAndComp(data){
+                            if let thumbImg = shrinkAndComp(data) {
                                 thumbImage = thumbImg
                             }
                         }

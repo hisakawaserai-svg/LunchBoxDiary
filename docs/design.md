@@ -140,6 +140,10 @@ erDiagram
 
 関数の中身(コード)は書かない。名前、受け取るもの、返すもの、役割、流れ、失敗したときの扱いを書く。コード側には、役割を `///` で1行書いておく。
 
+**置き場所**
+- `Logic/`: 画面に依存しない関数(例: `shrinkAndComp`)
+- `Utils/`: 標準の型への拡張(例: `Calendar+App.swift`)
+
 **MonthGroup / DateItem**
 
 | 型 | 項目 | 内容 |
@@ -202,20 +206,24 @@ erDiagram
 
 **shrinkAndComp**
 
-`shrinkAndComp(_ data: Data, detailPx: CGFloat = 200) -> Data?`
+`shrinkAndComp(_ data: Data, px: CGFloat = 200) -> Data?`
+
+- 置き場所: `Logic/ImageResize.swift`
 
 - 役割: 写真を縮小し、JPEG(品質 0.5)に圧縮して、`Data` で返す
 - 流れ
   1. `Data` から `UIImage` を作る(作れなければ `nil`)
-  2. `preparingThumbnail(of:)` で、`detailPx` 四方に収まる大きさに縮小する
+  2. `preparingThumbnail(of:)` で、`px` 四方に収まる大きさに縮小する
   3. `jpegData(compressionQuality: 0.5)` で `Data` にして返す
 - 返す型を `Data` にした理由: 保存できるのが `Data` だけだから。表示のときに `UIImage` に直す
 - 失敗したとき(仮。決め直す): 縮小に失敗すると、元の大きさの画像を、圧縮して返す(「元画像は保存しない」と食い違う。`open-issues.md`)
 
-**detailPx**
+**screenWidthPx**
 
-`detailPx() -> CGFloat`
+`screenWidthPx(scale: CGFloat, pt: CGFloat) -> CGFloat`
 
+- 置き場所: `Logic/ImageResize.swift`
+- 名前の変更(2026-11-13): `detailPx` から変更。詳細画面専用に読めて、役割(画面の幅をpxにする)とずれていたため。画面の倍率と幅は、View から引数で渡す(`scale`、`pt`)
 - 役割: メイン画像の大きさ(px)を返す。画面の幅(pt)× 画面の倍率
 - 設計の変更(2026-11-10): `UIScreen.main` をやめた(非推奨のため)。画面の幅は、一番上の親の View で `.onGeometryChange` を使って取り、`@State var screenWidth` に入れて、`AdditionView` へ引数で渡す
 - 倍率は、`@Environment(\.displayScale)` から取る(2026-11-11 に置き換え済み)
