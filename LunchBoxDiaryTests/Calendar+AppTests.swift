@@ -6,7 +6,7 @@
 //
 
 import Testing
-import SwiftUI
+import Foundation
 @testable import LunchBoxDiary
 
 struct CalendarTests {
