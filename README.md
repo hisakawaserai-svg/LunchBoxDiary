@@ -30,6 +30,7 @@
 | [docs/spec.md](docs/spec.md) | 要件定義・仕様書(何を作るか) |
 | [docs/design.md](docs/design.md) | 設計書(どう作るか、決めた理由、未決のこと) |
 | [docs/verification.md](docs/verification.md) | 検証の記録(試したこと、結果、判断) |
+| [docs/decisions.md](docs/decisions.md) | 決定の記録(何にしたか、他の案、理由。詳細は設計書と検証記録へのリンク) |
 
 ## 進め方
 
