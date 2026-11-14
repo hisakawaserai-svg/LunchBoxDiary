@@ -11,8 +11,15 @@ import UIKit
 func shrinkAndComp(_ data: Data, px: CGFloat = CGFloat(200)) throws -> Data {
     guard px > 0 else { throw ImageResizeError.shrinkSize }
     guard let uiImg = UIImage(data: data) else { throw ImageResizeError.notImage }
-    guard let shrinkImg = uiImg.preparingThumbnail(of: CGSize(width: px, height: px)) else { throw ImageResizeError.cantShrink }
-    guard let compreImg = shrinkImg.jpegData(compressionQuality: 0.5) else { throw ImageResizeError.cantCompre }
+    
+    let img: UIImage
+    if max(uiImg.size.width, uiImg.size.height) > px {
+        guard let shrinkImg = uiImg.preparingThumbnail(of: CGSize(width: px, height: px)) else { throw ImageResizeError.cantShrink }
+        img = shrinkImg
+    } else {
+        img = uiImg
+    }
+    guard let compreImg = img.jpegData(compressionQuality: 0.5) else { throw ImageResizeError.cantCompre }
 
     return compreImg
 }

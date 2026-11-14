@@ -126,7 +126,7 @@ erDiagram
 
 **保存の流れ**
 1. `PhotosPicker` で選んだ写真を `Data` で読む
-2. メイン用とサムネイル用の2つを、`shrinkAndComp` で作る(縮小 → JPEG 圧縮 → `Data`)
+2. メイン用とサムネイル用の2つを、`shrinkAndComp` で作る(縮小 → JPEG 圧縮 → `Data`)。失敗したらアラートを出す(7章「画像のエラー処理」)
 3. 2つを、記録に入れて保存する(元画像は捨てる)
 - 記録を削除したときの写真ファイルの扱いは、SwiftData に任せる
 - 容量の目安: 1日1件で、1年あたり約83.5MB(実測。`verification.md` の1-2)。元画像を残した場合は約1.2GB/年
@@ -206,17 +206,20 @@ erDiagram
 
 **shrinkAndComp**
 
-`shrinkAndComp(_ data: Data, px: CGFloat = 200) -> Data?`
+`shrinkAndComp(_ data: Data, px: CGFloat = 200) throws -> Data`
 
 - 置き場所: `Logic/ImageResize.swift`
 
 - 役割: 写真を縮小し、JPEG(品質 0.5)に圧縮して、`Data` で返す
-- 流れ
-  1. `Data` から `UIImage` を作る(作れなければ `nil`)
-  2. `preparingThumbnail(of:)` で、`px` 四方に収まる大きさに縮小する
-  3. `jpegData(compressionQuality: 0.5)` で `Data` にして返す
+- 流れ(どの段階でも、失敗したらそこで `ImageResizeError` を投げて終わる)
+  1. `px` が 0 より大きいか確かめる(0 以下なら `shrinkSize`)
+  2. `Data` から `UIImage` を作る(作れなければ `notImage`)
+  3. 画像の長い辺(幅と高さの大きい方)が `px` より大きければ、`preparingThumbnail(of:)` で、`px` 四方に収まる大きさに縮小する(できなければ `cantShrink`)。`px` 以下なら、縮小せず、元の画像のまま次へ進む
+  4. `jpegData(compressionQuality: 0.5)` で `Data` にして返す(できなければ `cantCompre`)。圧縮は、縮小したかどうかにかかわらず、必ずかける
+- 小さい画像は拡大しない(2026-11-14 に決定): `preparingThumbnail(of:)` は、小さい画像も `px` まで拡大するため、手順3で縮小自体を飛ばす。理由は、拡大しても画質は良くならず、データが増えるだけだから。実際に起きる場面: メインの `px` は画面の幅 × 倍率(約 1179)なので、それより小さい古い写真が入ることがある
+- 縦横比は、縮小しても保たれる。短い辺は、整数に丸められる(実測: 1600×900 を `px: 100` にすると 100×56。56.25 が 56 になった)。丸め方は `preparingThumbnail(of:)` に任せていて、公式には決まっていない。テストは、縦横比の差が 0.05 未満であることで確かめる。丸めで 1px ずれても、差は約 0.008(1600×900 の場合)なので、この範囲に収まる
 - 返す型を `Data` にした理由: 保存できるのが `Data` だけだから。表示のときに `UIImage` に直す
-- 失敗したとき(仮。決め直す): 縮小に失敗すると、元の大きさの画像を、圧縮して返す(「元画像は保存しない」と食い違う。`open-issues.md`)
+- 失敗したとき(2026-11-13 に決定): 値を返さず、`ImageResizeError` を投げる。以前の「縮小に失敗すると、元の大きさの画像を圧縮して返す」は、やめた(「元画像は保存しない」と食い違うため)。失敗した写真は、保存の対象にしない
 
 **screenWidthPx**
 
@@ -230,7 +233,31 @@ erDiagram
 - 流れ: `displayScale × screenWidthPt`(たとえば 3 × 393 = 1179)
 - global な変数には持たない(どこからでも書き換えられる。複数のウィンドウがあると、値が1つに決まらない)
 - 動作確認: iOS 17 を対象にして、エラーなしで動いた(確認)
-- 未決: 親の View の幅が、0 のときの扱い(最初のレイアウトの前)
+- 親の View の幅が 0 のとき(最初のレイアウトの前): `px` が 0 になるので、`shrinkAndComp` が `shrinkSize` を投げる。`CreateView` がアラートを出す(下の「画像のエラー処理」)
+
+**画像のエラー処理**
+
+エラーの型を2つに分ける。
+
+| 型 | 置き場所 | 役割 |
+|---|---|---|
+| `ImageResizeError` | `Logic/ImageResize.swift` | `shrinkAndComp` が投げる失敗の種類。4ケース: `shrinkSize`(`px` が 0 以下)、`notImage`(画像として読めない)、`cantShrink`(縮小できない)、`cantCompre`(圧縮できない) |
+| `ImageError` | `Views/CreateView.swift` | アラートに出す失敗の種類。`resize(ImageResizeError)`(変換の失敗)と `loadFailed`(写真の読み込みの失敗)の2つ |
+
+- 分ける理由: `Logic/` は画面に依存しない。利用者向けの文言や、写真の読み込み(`loadTransferable`)の失敗は、画面側の事情なので、`ImageError` に持たせる
+- 利用者向けの文言は、`ImageError.message` に持たせる(`switch` で全ケースを書くので、ケースを足し忘れるとビルドで気づける)
+  - `notImage`、`loadFailed` → 「写真を読み込めませんでした」
+  - `shrinkSize`、`cantShrink`、`cantCompre` → 「うまく処理できませんでした」
+- 呼ぶ側の流れ(`CreateView` の `.task(id: selectedImage)`)
+  1. 先に、メインとサムネイルの2つを `nil` に戻す(失敗したとき、前の写真を残さない。食い違いを防ぐ)
+  2. 写真を `Data` で読む
+  3. メイン用、サムネイル用の順に `shrinkAndComp` を呼ぶ
+  4. `ImageResizeError` は `.resize(error)` に包み、それ以外は `.loadFailed` にして、`imageAlert` に入れる(`.task` の中は投げられないので、最後は何でも受ける `catch` で終える)
+- アラートは `imageAlert: ImageError?` の1つで管理する。`nil` でなければ表示し、閉じたら `nil` に戻す(`Binding(get:set:)` で `Bool` に変換)
+- 保存は、保存ボタンを押したときだけ行う。変換に失敗しても、保存データには影響しない
+- 未決
+  - 失敗後に、写真がない状態で保存ボタンを押したときの扱い(今は何も起きない)。入力のバリデーションで決める
+  - 写真をすばやく選び直したとき、前の処理の中断(`CancellationError`)が、`loadFailed` のアラートになるか(未確認)
 
 **Color(hex:)**
 
@@ -287,7 +314,14 @@ erDiagram
   - `Color(hex:)`: `#FFFFFF`、`FFFFFF`(`#` なし)、`#fff`(桁が足りない)、文字が混ざった文字列
   - `colorToStr`: 黒、白、桁が1つ足りない色(赤 10、緑 161、青 15 → `#0AA10F`)。元に戻る(往復)
   - `getLastDate`: 2026年2月(28日)、うるう年の2月、31日の月
-- まだ、テストコードは書いていない
+- `shrinkAndComp`(`ImageResizeTests.swift`): テスト用の画像は、ファイルを用意せず、`UIGraphicsImageRenderer` で作る(`scale` は 1。大きさが、そのままピクセル数になる)
+  - `px` が 0、-1 → `shrinkSize`
+  - 画像ではない `Data` → `notImage`
+  - 1200×1200 を `px: 100` → 100×100
+  - 1200×900、1600×900、600×900 を `px: 100` → 長い辺が 100、縦横比が元と 0.05 未満の差
+  - 50×50 を `px: 100` → 50×50 のまま(拡大しない)
+  - `cantShrink`、`cantCompre` は、普通の入力では起きないので、テストしない
+- まだ、テストコードを書いていない関数もある
 
 ## 10. 機能ごとの状態
 
