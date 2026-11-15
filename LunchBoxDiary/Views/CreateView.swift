@@ -31,7 +31,7 @@ struct CreateView: View {
     @State private var mainImage: Data?
     @State private var thumbImage: Data?
     @State private var date: Date = Date()
-    @State private var memo: String?
+    @State private var memo: String = ""
     @State private var event: [Event]?
     @State private var who: Who?
     @State private var frameTheme: FrameTheme = .def
@@ -72,6 +72,9 @@ struct CreateView: View {
                         selection: $date,
                         displayedComponents: [.date]
                     )
+                    TextField("メモ", text: $memo, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .lineLimit(3...6)
                 }
             }
             .toolbar {
@@ -80,8 +83,12 @@ struct CreateView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("保存") {
-                        if let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: title, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: memo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
+                        // メモ
+                        let trimmedMemo: String = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let recordMemo: String? = !trimmedMemo.isEmpty ? trimmedMemo : nil
+
+                        if !title.isEmpty, let mainImage, let thumbImage {
+                            modelContext.insert(LunchBox(title: title, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
                             dismiss()
                         }
                     }
