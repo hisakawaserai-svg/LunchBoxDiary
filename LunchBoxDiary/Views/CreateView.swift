@@ -81,7 +81,7 @@ struct CreateView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("保存") {
                         if let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: title, image: mainImage, thumbnail: thumbImage, date: date, memo: memo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
+                            modelContext.insert(LunchBox(title: title, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: memo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
                             dismiss()
                         }
                     }
