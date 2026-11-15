@@ -83,7 +83,7 @@ erDiagram
 - `@Model` は class のため、入力欄を記録に直接つなぐと、キャンセルしても元のデータが書き換わる
 - そのため、入力途中の内容は一時的な変数(`@State`)に持つ
 - 保存ボタンを押したときに、記録へ書き込む
-- 親から受け取るだけの値(例: `screenWidthPt`、`DayView` の `day`)は、`let` で受け取る。`@State` にすると、親が値を変えても、子は最初の値のまま残るため
+- 親から受け取るだけの値(例: `DayView` の `day`)は、`let` で受け取る。`@State` にすると、親が値を変えても、子は最初の値のまま残るため
 
 ## 4. カレンダー
 
@@ -142,7 +142,18 @@ erDiagram
 
 **置き場所**
 - `Logic/`: 画面に依存しない関数(例: `shrinkAndComp`)
-- `Utils/`: 標準の型への拡張(例: `Calendar+App.swift`)
+- `Utils/`: 標準の型への拡張(例: `Calendar+App.swift`、`Date+App.swift`)
+- 使い分けの目安(2026-11-15): 材料が `self` とアプリ共通の設定(`Calendar.app` など)だけで決まるものは、extension の計算プロパティにする。複数の型を組み立てるもの(`MonthGroup` を作る、など)や、ほかのデータが材料になるものは、`Logic/` の関数にする
+
+**Date.startOfDay**
+
+`extension Date { var startOfDay: Date }`
+
+- 置き場所: `Utils/Date+App.swift`
+- 役割: その日付を、日本時間の0時ちょうどにそろえて返す(`Calendar.app.startOfDay(for: self)`)
+- 作った理由(2026-11-15): 保存するときと読むときの両方で使う。`Calendar.current`(端末のタイムゾーン)を、うっかり使うと、日付がずれるため、`Calendar.app` の指定を、1か所に閉じ込めた
+- 使っている場所: `CreateView` の保存(`date.startOfDay` を `LunchBox` に渡す)。読む側(日ごとにまとめる処理)は、カレンダーを本体に入れるときに置き換える
+- テスト: 書いていない。`Calendar.startOfDay(for:)` を包んだだけで、`Calendar.app` が日本時間であることは、`Calendar+AppTests` が確かめているため
 
 **MonthGroup / DateItem**
 
@@ -228,12 +239,13 @@ erDiagram
 - 置き場所: `Logic/ImageResize.swift`
 - 名前の変更(2026-11-13): `detailPx` から変更。詳細画面専用に読めて、役割(画面の幅をpxにする)とずれていたため。画面の倍率と幅は、View から引数で渡す(`scale`、`pt`)
 - 役割: メイン画像の大きさ(px)を返す。画面の幅(pt)× 画面の倍率
-- 設計の変更(2026-11-10): `UIScreen.main` をやめた(非推奨のため)。画面の幅は、一番上の親の View で `.onGeometryChange` を使って取り、`@State var screenWidthPt` に入れて、`CreateView` へ引数で渡す
+- 設計の変更(2026-11-10): `UIScreen.main` をやめた(非推奨のため)。画面の幅は、`.onGeometryChange` で取り、`@State var screenWidthPt` に入れる
+- 設計の再変更(2026-11-15): 最初は、一番上の親の View(`ContentView`)で幅を取り、`CreateView` へ引数で渡していた。実機で、`CreateView` が受け取る幅が 0 になり、`shrinkSize` のアラートが出た(親は、ボタンを押す直前に、正しい値を持っていた)。そのため、`CreateView` が、自分で `.onGeometryChange` を使って測る形に変えた。使う場所が `CreateView` だけなので、この形で十分。原因は特定できていない(`open-issues.md`)
 - 倍率は、`@Environment(\.displayScale)` から取る(2026-11-11 に置き換え済み)
 - 流れ: `displayScale × screenWidthPt`(たとえば 3 × 393 = 1179)
 - global な変数には持たない(どこからでも書き換えられる。複数のウィンドウがあると、値が1つに決まらない)
 - 動作確認: iOS 17 を対象にして、エラーなしで動いた(確認)
-- 親の View の幅が 0 のとき(最初のレイアウトの前): `px` が 0 になるので、`shrinkAndComp` が `shrinkSize` を投げる。`CreateView` がアラートを出す(下の「画像のエラー処理」)
+- 幅が 0 のとき(最初のレイアウトの前など): `px` が 0 になるので、`shrinkAndComp` が `shrinkSize` を投げる。`CreateView` がアラートを出す(下の「画像のエラー処理」)。写真を選ぶのは、画面が出てからなので、通常は、幅が入っている
 
 **画像のエラー処理**
 
