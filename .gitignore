@@ -1,6 +1,7 @@
 # Xcode
 *.xcuserstate
 xcuserdata/
+xcshareddata/
 DerivedData/
 
 # macOS
