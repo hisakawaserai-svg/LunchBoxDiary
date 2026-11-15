@@ -15,7 +15,8 @@ struct CreateView: View {
     
     // 画像縮小に必要な変数
     @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
-    let screenWidthPt: CGFloat
+    @State private var screenWidthPt: CGFloat = 0
+    
     @State private var imageAlert: ImageError?
     private var isAlertShow: Binding<Bool> {
         Binding(
@@ -87,6 +88,9 @@ struct CreateView: View {
                 }
             }
         }
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { newWidthPt in
+            screenWidthPt = newWidthPt
+        }
         .alert("エラー", isPresented: isAlertShow) {
             Button("閉じる", role: .cancel) {}
         } message: {
@@ -110,5 +114,5 @@ enum ImageError: Error {
 }
 
 #Preview {
-    CreateView(screenWidthPt: 1200)
+    CreateView()
 }
