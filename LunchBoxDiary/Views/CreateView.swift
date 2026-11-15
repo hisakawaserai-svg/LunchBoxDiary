@@ -32,7 +32,7 @@ struct CreateView: View {
     @State private var thumbImage: Data?
     @State private var date: Date = Date()
     @State private var memo: String = ""
-    @State private var event: [Event]?
+    @State private var events: [Event]?
     @State private var who: Who?
     @State private var frameTheme: FrameTheme = .def
     @State private var frameColor: Color = .pink
