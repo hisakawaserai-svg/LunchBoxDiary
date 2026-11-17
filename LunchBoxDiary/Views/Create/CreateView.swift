@@ -24,14 +24,29 @@ struct CreateView: View {
     @State private var frameTheme: FrameTheme = .def
     @State private var frameColor: Color = .pink
     
+    @State private var issues: [ValidationIssue] = []
+    @ViewBuilder private func textIssue(_ validation: ValidationIssue) -> some View {
+        if issues.contains(validation) {
+            Text(validation.message)
+                .font(.caption)
+                .foregroundColor(.red)
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("")) {
-                    TextField("タイトル", text: $title)
-                    PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, screenWidthPt: screenWidthPt)
+                    VStack(alignment: .leading) {
+                        TextField("タイトル", text: $title)
+                        textIssue(.titleEmpty)
+                    }
+                    VStack(alignment: .leading) {
+                        PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, screenWidthPt: screenWidthPt)
+                        textIssue(.noImage)
+                    }
                     DatePicker(
-                        "日付を選んでください",
+                        "日付",
                         selection: $date,
                         displayedComponents: [.date]
                     )
@@ -46,12 +61,16 @@ struct CreateView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("保存") {
+                        let trimmedTitle: String = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                        
                         // メモ
                         let trimmedMemo: String = memo.trimmingCharacters(in: .whitespacesAndNewlines)
                         let recordMemo: String? = !trimmedMemo.isEmpty ? trimmedMemo : nil
 
-                        if !title.isEmpty, let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: title, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
+                        issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
+                    
+                        if issues.isEmpty, let mainImage, let thumbImage {
+                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
                             dismiss()
                         }
                     }
