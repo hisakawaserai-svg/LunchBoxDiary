@@ -20,8 +20,8 @@ nonisolated enum NameCheckResult {
     
     var message: String? {
         switch self {
-        case .empty: return "イベント名を入力してください"
-        case .duplicate: return "すでに存在するイベント名です"
+        case .empty: return "名前を入力してください"
+        case .duplicate: return "すでに存在する名前です"
         case .ok: return nil
         }
     }
