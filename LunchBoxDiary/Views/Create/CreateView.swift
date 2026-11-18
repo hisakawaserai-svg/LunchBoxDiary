@@ -19,7 +19,6 @@ struct CreateView: View {
     @State private var thumbImage: Data?
     @State private var date: Date = Date()
     @State private var memo: String = ""
-    @State private var who: Who?
     @State private var frameTheme: FrameTheme = .def
     @State private var frameColor: Color = .pink
     
@@ -27,6 +26,11 @@ struct CreateView: View {
     @Query private var events: [Event]
     private var selectedEvents: [Event] {
         events.filter { selectedEventIDs.contains($0.id) }
+    }
+    @State private var selectedWhoID: UUID?
+    @Query private var whos: [Who]
+    private var selectedWho: Who? {
+        whos.first { $0.id == selectedWhoID }
     }
     
     @State private var issues: [ValidationIssue] = []
@@ -60,6 +64,13 @@ struct CreateView: View {
                         Spacer()
                         Text("\(selectedEvents.count)件選択中")
                     }
+                    HStack {
+                        NavigationLink("誰に") {
+                            WhoManageView(selection: $selectedWhoID)
+                        }
+                        Spacer()
+                        Text(selectedWho?.name ?? "未選択")
+                    }
                     TextField("メモ", text: $memo, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(3...6)
@@ -80,7 +91,7 @@ struct CreateView: View {
                         issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
                     
                         if issues.isEmpty, let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: nil, frame: Frame(theme: .def, color: "#000000")))
+                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: "#000000")))
                             dismiss()
                         }
                     }

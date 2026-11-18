@@ -32,6 +32,12 @@ struct ContentView: View {
                                 }
                             }
                         }
+                        if let w = lunch.who {
+                            HStack {
+                                Text("誰に：")
+                                Text("\(w.name)")
+                            }
+                        }
                     }
                 }
             }
