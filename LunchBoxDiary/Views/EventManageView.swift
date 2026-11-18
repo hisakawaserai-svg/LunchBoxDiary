@@ -78,6 +78,12 @@ struct EventManageView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .deleteDisabled(selection != nil)
+                }
+                .onDelete{ offsets in
+                    for index in offsets {
+                        modelContext.delete(events[index])
+                    }
                 }
             }
         }
