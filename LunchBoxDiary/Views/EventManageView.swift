@@ -12,6 +12,13 @@ struct EventManageView: View {
     @Environment(\.modelContext) private var modelContext
     
     @Query(sort: \Event.name) private var events: [Event]
+    private var filteredEvents: [Event] {
+        if searchName == "" {
+            return events
+        }
+        return events.filter { $0.name.localizedStandardContains(searchName) }
+    }
+    
     @FocusState private var isFocused: Bool
     @State private var name: String = ""
     @State private var checkMessage: NameCheckResult?
@@ -54,11 +61,8 @@ struct EventManageView: View {
             }
             Divider()
             
-            TextField("検索", text: $searchName)
-                .padding()
-                .textFieldStyle(.roundedBorder)
             List {
-                ForEach(events) { event in
+                ForEach(filteredEvents) { event in
                     let selected = selection?.wrappedValue.contains(event.id) ?? false
                     Button {
                         if selected {
@@ -82,15 +86,18 @@ struct EventManageView: View {
                 }
                 .onDelete{ offsets in
                     for index in offsets {
-                        modelContext.delete(events[index])
+                        modelContext.delete(filteredEvents[index])
                     }
                 }
             }
+            .searchable(text: $searchName)
         }
     }
 }
 
 #Preview {
-    EventManageView()
-        .modelContainer(for: [LunchBox.self, Event.self, Who.self])
+    NavigationStack {
+        EventManageView()
+            .modelContainer(for: [LunchBox.self, Event.self, Who.self])
+    }
 }
