@@ -19,10 +19,15 @@ struct CreateView: View {
     @State private var thumbImage: Data?
     @State private var date: Date = Date()
     @State private var memo: String = ""
-    @State private var events: [Event]?
     @State private var who: Who?
     @State private var frameTheme: FrameTheme = .def
     @State private var frameColor: Color = .pink
+    
+    @State private var selectedEventIDs: Set<UUID> = []
+    @Query private var events: [Event]
+    private var selectedEvents: [Event] {
+        events.filter { selectedEventIDs.contains($0.id) }
+    }
     
     @State private var issues: [ValidationIssue] = []
     @ViewBuilder private func textIssue(_ validation: ValidationIssue) -> some View {
@@ -50,6 +55,11 @@ struct CreateView: View {
                         selection: $date,
                         displayedComponents: [.date]
                     )
+                    HStack {
+                        NavigationLink("イベント") { EventManageView(selection: $selectedEventIDs) }
+                        Spacer()
+                        Text("\(selectedEvents.count)件選択中")
+                    }
                     TextField("メモ", text: $memo, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(3...6)
@@ -70,7 +80,7 @@ struct CreateView: View {
                         issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
                     
                         if issues.isEmpty, let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: nil, who: nil, frame: Frame(theme: .def, color: "#000000")))
+                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: nil, frame: Frame(theme: .def, color: "#000000")))
                             dismiss()
                         }
                     }
@@ -85,4 +95,5 @@ struct CreateView: View {
 
 #Preview {
     CreateView()
+        .modelContainer(for: [LunchBox.self, Event.self, Who.self])
 }

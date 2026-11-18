@@ -10,13 +10,31 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \LunchBox.date, order: .reverse) private var lunchBoxes: [LunchBox]
     
     @State private var isShowCreate: Bool = false
 
     var body: some View {
         VStack {
             // 仮
-            ScrollView {}
+            List {
+                ForEach(lunchBoxes) { lunch in
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(lunch.title)
+                            Text(lunch.date, format: .dateTime.year().month(.twoDigits).day(.twoDigits))
+                        }
+                        if let events = lunch.events {
+                            HStack {
+                                Text("イベント：")
+                                ForEach(events) { event in
+                                    Text(event.name)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
                 .overlay(alignment: .bottomTrailing) {
                     Button {
                         isShowCreate.toggle()

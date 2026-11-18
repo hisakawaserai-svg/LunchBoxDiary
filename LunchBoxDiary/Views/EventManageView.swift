@@ -16,6 +16,8 @@ struct EventManageView: View {
     @State private var name: String = ""
     @State private var checkMessage: NameCheckResult?
     
+    let selection: Binding<Set<UUID>>?
+    init(selection: Binding<Set<UUID>>? = nil) { self.selection = selection }
     @State private var searchName: String = ""
     
     var body: some View {
@@ -57,7 +59,25 @@ struct EventManageView: View {
                 .textFieldStyle(.roundedBorder)
             List {
                 ForEach(events) { event in
-                    Text(event.name)
+                    let selected = selection?.wrappedValue.contains(event.id) ?? false
+                    Button {
+                        if selected {
+                            selection?.wrappedValue.remove(event.id)
+                        } else {
+                            selection?.wrappedValue.insert(event.id)
+                        }
+                    } label: {
+                        HStack {
+                            Text(event.name)
+                            Spacer()
+                            if selection != nil {
+                                Image(systemName: selected ? "checkmark.square" : "square")
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
