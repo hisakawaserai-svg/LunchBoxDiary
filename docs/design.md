@@ -297,12 +297,13 @@ erDiagram
 
 **Color(hex:)**
 
-`Color.init?(hex: String)`
+`Color` の拡張(`Utils/Color+App.swift`)。`init?(hex: String)`
 
 - 役割: `#RRGGBB` の文字列から、`Color` を作る
-- 流れ: 1. `#` を取り除く 2. 16進数として `Int` にする 3. 赤・緑・青を、ビット演算で取り出し、255 で割る 4. `Color(red:green:blue:)` を作る
-- 失敗したとき: 16進数として読めなければ `nil`。呼ぶ側で、`?? .gray` などの代わりの色にする(`FrameView` は `.gray`)
-- 未決: 6桁以外の入力(例: `#fff`)の扱い
+- 流れ: 1. `#` を取り除く 2. 6桁で、全部が16進数の文字か確かめる 3. 16進数として `Int` にする 4. 赤・緑・青を、ビット演算で取り出し、255 で割る 5. `Color(red:green:blue:)` を作る
+- 失敗したとき: `nil`。6桁以外(`#fff` も)と、16進数でない文字(全角を含む)は `nil`。呼ぶ側で、`?? .gray` などの代わりの色にする(`FrameView` は `.gray`)
+- 大文字と小文字は、区別しない(`#f2a7b9` も読める)。`hexString` は、常に大文字で返す
+- 決定(2026-11-20): 6桁以外は `nil`(`#fff` を6桁に広げる案は、採らなかった)。入力が外から来る関数なので、桁数と文字の種類を先に確かめる
 
 **Color.hexString**
 
@@ -315,17 +316,19 @@ erDiagram
   3. `#` に、3つをつなげる
 - 収める理由: 広い色域の色は、値が範囲を出ることがあり、`%02X` が3桁になって、文字列が壊れる
 - 透明度は、使わない(`supportsOpacity: false`、6桁)。あとから8桁に増やせる(決定12)
-- 保存の流れ: `ColorPicker` → `Color` → `hexString` → `String` で保存。表示は、`Color(hex:)` で戻す(未実装)
+- 保存の流れ: `ColorPicker` → `Color` → `hexString` → `String` で保存。表示は、`Color(hex:)` で戻す。呼ぶ側で、`Color(hex: frame.color) ?? .gray` と書く(`Frame` に変換用の拡張は作らない。呼ぶ場所が3か所以上に増えたら、まとめる)
 - 変更の経緯(2026-11-19): 最初は、単独の関数 `colorToStr` の設計だった。`Color(hex:)` と対になるものを、同じ拡張に置くため、拡張に変えた(決定12)
 
 **textColor**
 
-`textColor(_ bg: String) -> Color`
+`Color` の拡張(`Utils/Color+App.swift`)。`var textColor: Color`
 
-- 役割: 背景色(16進数)の上に置く、文字の色を返す
-- 流れ: 1. 赤・緑・青を取り出す 2. 相対輝度を計算する(ガンマ補正し、0.2126・0.7152・0.0722 の重みで足す) 3. 0.35 より大きければ `#3A2E2E`、以下なら `#FFFFFF`
-- 失敗したとき: 色が読めなければ、黒
+- 役割: その色を背景にしたとき、上に置く、文字の色を返す(`frameColor.textColor`)
+- 流れ: 1. `resolve(in:)` で、赤・緑・青を取り出す 2. 相対輝度を計算する(ガンマ補正し、0.2126・0.7152・0.0722 の重みで足す) 3. 0.35 より大きければ `#3A2E2E`(暗い色)、以下なら `#FFFFFF`
+- 失敗: ない(入力が `Color` で、必ず色があるため。試作は、文字列を受け取っていたので、読めなければ黒を返していた)
+- 変更の経緯(2026-11-20): 試作は、`textColor(_ bg: String)` の関数だった。`FrameView` が `Color` を受け取るので、`Color` の拡張のプロパティにした
 - 補足: 0.35 は、モックを見て決めた値。実機で見て、調整してよい
+- 未確認: `resolve` の `linearRed` などで、ガンマ補正の式を省けるか(今は、式を自分で書いている)
 
 ## 8. フレーム(試作の範囲: 「ほしの枠」の大きいカード)
 
@@ -351,7 +354,8 @@ erDiagram
 - 対象にしやすいのは、入力と出力が決まる関数(`Color(hex:)`、`Color.hexString`、`textColor`、`getLastDate`、`getMonthGroups` など)
 - 考えておく入力の例
   - `Color(hex:)`: `#FFFFFF`、`FFFFFF`(`#` なし)、`#fff`(桁が足りない)、文字が混ざった文字列
-  - `Color.hexString`: 黒、白、桁が1つ足りない色(赤 10、緑 161、青 15 → `#0AA10F`)。テストは書いた(`Color+AppTests.swift`)。往復は、`Color(hex:)` の実装後
+  - `Color.hexString`: 黒、白、桁が1つ足りない色(赤 10、緑 161、青 15 → `#0AA10F`)。テストは書いた(`Color+AppTests.swift`)。往復(`hexString` → `Color(hex:)` → `hexString`)も、テストした
+  - `textColor`: 黒 → `#FFFFFF`、白 → `#3A2E2E`、明るいピンク(`#F2A7B9`)→ `#3A2E2E`。比べ方は、`hexString` の文字列と、`Color` の両方で確かめ、どちらも通った(2026-11-20)
   - `getLastDate`: 2026年2月(28日)、うるう年の2月、31日の月
 - `shrinkAndComp`(`ImageResizeTests.swift`): テスト用の画像は、ファイルを用意せず、`UIGraphicsImageRenderer` で作る(`scale` は 1。大きさが、そのままピクセル数になる)
   - `px` が 0、-1 → `shrinkSize`
