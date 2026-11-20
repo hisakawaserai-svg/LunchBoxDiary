@@ -304,16 +304,19 @@ erDiagram
 - 失敗したとき: 16進数として読めなければ `nil`。呼ぶ側で、`?? .gray` などの代わりの色にする(`FrameView` は `.gray`)
 - 未決: 6桁以外の入力(例: `#fff`)の扱い
 
-**colorToStr**
+**Color.hexString**
 
-`colorToStr(_ color: Color) -> String`
+`Color` の拡張(`Utils/Color+App.swift`)。`var hexString: String`
 
 - 役割: `Color` を `#RRGGBB` の文字列にする(`ColorPicker` の結果を、保存できる形にする)
 - 流れ
-  1. `color.resolve(in:)` で、赤・緑・青の値を取り出す(iOS 17 以上の API。Xcode で確認)
-  2. 0〜255 の整数に、四捨五入で直す
-  3. `String(format: "%02X", ...)` で、2桁の16進数にして並べる(桁そろえ)
-- 保存の流れ: `ColorPicker` → `Color` → `colorToStr` → `String` で保存。表示は、`Color(hex:)` で戻す
+  1. `resolve(in: EnvironmentValues())` で、赤・緑・青の値を取り出す(iOS 17 以上の API)
+  2. `map` の中で、0〜1 に収め、255 を掛けて、四捨五入で整数に直し、`String(format: "%02X", ...)` で2桁の16進数にする(桁そろえ)
+  3. `#` に、3つをつなげる
+- 収める理由: 広い色域の色は、値が範囲を出ることがあり、`%02X` が3桁になって、文字列が壊れる
+- 透明度は、使わない(`supportsOpacity: false`、6桁)。あとから8桁に増やせる(決定12)
+- 保存の流れ: `ColorPicker` → `Color` → `hexString` → `String` で保存。表示は、`Color(hex:)` で戻す(未実装)
+- 変更の経緯(2026-11-19): 最初は、単独の関数 `colorToStr` の設計だった。`Color(hex:)` と対になるものを、同じ拡張に置くため、拡張に変えた(決定12)
 
 **textColor**
 
@@ -345,10 +348,10 @@ erDiagram
 ## 9. テスト
 
 - 方針: 関数を作るたびに、「どんな入力に、何が返るべきか」を考える
-- 対象にしやすいのは、入力と出力が決まる関数(`Color(hex:)`、`colorToStr`、`textColor`、`getLastDate`、`getMonthGroups` など)
+- 対象にしやすいのは、入力と出力が決まる関数(`Color(hex:)`、`Color.hexString`、`textColor`、`getLastDate`、`getMonthGroups` など)
 - 考えておく入力の例
   - `Color(hex:)`: `#FFFFFF`、`FFFFFF`(`#` なし)、`#fff`(桁が足りない)、文字が混ざった文字列
-  - `colorToStr`: 黒、白、桁が1つ足りない色(赤 10、緑 161、青 15 → `#0AA10F`)。元に戻る(往復)
+  - `Color.hexString`: 黒、白、桁が1つ足りない色(赤 10、緑 161、青 15 → `#0AA10F`)。テストは書いた(`Color+AppTests.swift`)。往復は、`Color(hex:)` の実装後
   - `getLastDate`: 2026年2月(28日)、うるう年の2月、31日の月
 - `shrinkAndComp`(`ImageResizeTests.swift`): テスト用の画像は、ファイルを用意せず、`UIGraphicsImageRenderer` で作る(`scale` は 1。大きさが、そのままピクセル数になる)
   - `px` が 0、-1 → `shrinkSize`
@@ -371,12 +374,12 @@ erDiagram
 | 月のカレンダー(月の切り替え、マスの表示) | 試作で検証済み。件数のバッジ、先頭1件のタイトル順は未 | 4章 |
 | 写真の縮小・圧縮・保存 | 検証済み。縦向きの写真の確認は未 | 5章 |
 | フレーム | 「ほしの枠」の大きいカードだけ試作。ほかのテーマ、小さいカードは未 | 8章 |
-| 作成画面 | タイトル、写真、日付、メモの入力と、必須項目(タイトル、写真)の検証まで実装。誰に、イベント、フレームの選択、プレビューは未 | 3章、7章 |
+| 作成画面 | タイトル、写真、日付、メモ、イベント、誰に、フレームの色の入力と、必須項目(タイトル、写真)の検証まで実装。フレームのテーマの選択、プレビューは未 | 3章、7章 |
 | 詳細シート | 未着手。方針だけ決定(シート。複数件は横にスワイプ) | 3章 |
 | 写真の全体表示 | 未着手。`fullScreenCover` で作ることだけ決定 | 3章 |
 | リスト表示 | 未着手。並び順(古い順)・月の見出しは決定済み。表示する範囲は未決 | 11章、`open-issues.md` |
 | 検索・フィルター | 未着手。イベント名と「誰に」で絞ることは決定済み。絞り込み中の印の形などは未決 | 11章、`open-issues.md` |
-| 「誰に」「イベント」の登録・編集 | 未着手 | `open-issues.md` |
+| 「誰に」「イベント」の登録・編集 | 登録・削除・検索・選択は実装(`EventManageView`、`WhoManageView`、`NameCheckResult`。決定8〜11)。編集、設定タブからの入口は未 | `decisions.md`、`open-issues.md` |
 | 削除 | 未着手。確認のアラートを出す方針 | `spec.md` 2章 |
 
 ## 11. 未着手の機能の方針(仮)

@@ -38,6 +38,7 @@ struct ContentView: View {
                                 Text("\(w.name)")
                             }
                         }
+                        Text(lunch.frame.color)
                     }
                 }
             }

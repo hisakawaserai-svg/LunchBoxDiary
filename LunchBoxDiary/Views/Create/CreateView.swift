@@ -71,6 +71,7 @@ struct CreateView: View {
                         Spacer()
                         Text(selectedWho?.name ?? "未選択")
                     }
+                    ColorPicker("フレーム色", selection: $frameColor, supportsOpacity: false)
                     TextField("メモ", text: $memo, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(3...6)
@@ -91,7 +92,7 @@ struct CreateView: View {
                         issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
                     
                         if issues.isEmpty, let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: "#000000")))
+                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: frameColor.hexString)))
                             dismiss()
                         }
                     }

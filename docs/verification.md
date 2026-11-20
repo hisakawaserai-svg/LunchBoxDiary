@@ -325,7 +325,7 @@ var LunchesByDay: [Date: [LunchBox]] {
 - テストの色は、黒だけでなく、0 以外の値や、1桁の値を含む色を使う(黒は、バグが隠れやすい)
 
 ### 残っていること
-- [ ] `colorToStr` の戻り値を、`Color(hex:)` で戻して、元の色と同じか(往復)の確認
+- [ ] `Color.hexString` の戻り値を、`Color(hex:)` で戻して、元の色と同じか(往復)の確認(2026-11-19 に `colorToStr` から `hexString` へ変更。決定12)
 - [ ] 6桁以外の入力(`#fff`)の扱い
 
 ## 8. フレーム(テーマ+色)を保存して、読み戻す
@@ -347,5 +347,5 @@ var LunchesByDay: [Date: [LunchBox]] {
 
 ### 残っていること
 - [ ] 黒以外の色(1桁の16進数を含む色、明るい色)と、`.def` 以外のテーマの値で、保存と読み戻しを確かめる
-- [ ] `ColorPicker` で選んだ色 → `colorToStr` → 保存 → 読み戻し → `Color(hex:)` の、一連の流れ
+- [ ] `ColorPicker` で選んだ色 → `hexString` → 保存 → 読み戻し → `Color(hex:)` の、一連の流れ
 - [ ] 明るい背景(例: `#F2A7B9`)で、文字が暗い色になるか
