@@ -41,17 +41,35 @@ struct CreateView: View {
                 .foregroundColor(.red)
         }
     }
+    private var titleCount: Int { validChar(title) }
+    
+    @State private var uiImage: UIImage?
     
     var body: some View {
         NavigationStack {
             Form {
+                FrameView(theme: frameTheme, color: frameColor, image: uiImage, title: title, date: date)
                 Section(header: Text("")) {
                     VStack(alignment: .leading) {
                         TextField("タイトル", text: $title)
-                        textIssue(.titleEmpty)
+                        HStack {
+                            if issues.contains(.titleEmpty) {
+                                textIssue(.titleEmpty)
+                            } else if issues.contains(.charLimit) {
+                                textIssue(.charLimit)
+                            } else {
+                                Text("全角は2文字分")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text("\(titleCount) / \(titleMaxLength)")
+                                .font(.caption)
+                                .foregroundColor(titleCount > titleMaxLength ? .red : .secondary)
+                        }
                     }
                     VStack(alignment: .leading) {
-                        PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, screenWidthPt: screenWidthPt)
+                        PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, uiImage: $uiImage, screenWidthPt: screenWidthPt)
                         textIssue(.noImage)
                     }
                     DatePicker(
