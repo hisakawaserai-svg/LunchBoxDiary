@@ -47,4 +47,24 @@ extension Color {
             return Color(hex: "#FFFFFF") ?? .white
         }
     }
+    
+    /// otherカラーをratio割合分混ぜる
+    func mix(with other: Color, by ratio: Double) -> Color {
+        let resolved = self.resolve(in: EnvironmentValues())
+        let array = [Double(resolved.red), Double(resolved.green), Double(resolved.blue)]
+        
+        let otherResolved = other.resolve(in: EnvironmentValues())
+        let otherArray = [Double(otherResolved.red), Double(otherResolved.green), Double(otherResolved.blue)]
+        
+        let remainingRatio = 1 - ratio
+        let mixArray = array.indices.map { index in
+            return array[index] * remainingRatio + otherArray[index] * ratio
+        }
+
+        return Color(
+            red: mixArray[0],
+            green: mixArray[1],
+            blue: mixArray[2]
+        )
+    }
 }

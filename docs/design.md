@@ -330,6 +330,16 @@ erDiagram
 - 補足: 0.35 は、モックを見て決めた値。実機で見て、調整してよい
 - 未確認: `resolve` の `linearRed` などで、ガンマ補正の式を省けるか(今は、式を自分で書いている)
 
+**mix(with:by:)**
+
+`Color` の拡張(`Utils/Color+App.swift`)。`func mix(with other: Color, by ratio: Double) -> Color`
+
+- 役割: その色を、別の色に近づけた色を返す(`frameColor.mix(with: .white, by: 0.78)`)。`static` は付けない(基準の色 `self` があるため。決定13)
+- 式: 赤・緑・青のそれぞれに、`元 × (1 − 割合) + 相手 × 割合`。割合 0 は元の色のまま、1 は相手の色そのもの
+- モックで使う3つ: 白と 0.78(薄い色A)、白と 0.5(薄い色B)、黒と 0.45(濃い色。各成分 ×0.55 と同じ)
+- 流れ: 1. 両方の色を `resolve(in:)` で成分に分ける 2. 成分ごとに式を当てる 3. `Color(red:green:blue:)` で作り直す
+- 比べ方: 計算で作った色は、`Color` 同士を `==` で比べず、`hexString` の文字列で比べる(決定13)
+
 ## 8. フレーム(試作の範囲: 「ほしの枠」の大きいカード)
 
 - テーマごとに、別の View として作る。ユーザーが選べるのは、テーマと色だけ
@@ -356,6 +366,7 @@ erDiagram
   - `Color(hex:)`: `#FFFFFF`、`FFFFFF`(`#` なし)、`#fff`(桁が足りない)、文字が混ざった文字列
   - `Color.hexString`: 黒、白、桁が1つ足りない色(赤 10、緑 161、青 15 → `#0AA10F`)。テストは書いた(`Color+AppTests.swift`)。往復(`hexString` → `Color(hex:)` → `hexString`)も、テストした
   - `textColor`: 黒 → `#FFFFFF`、白 → `#3A2E2E`、明るいピンク(`#F2A7B9`)→ `#3A2E2E`。比べ方は、`hexString` の文字列と、`Color` の両方で確かめ、どちらも通った(2026-11-20)
+  - `mix(with:by:)`: モックの数値(`#F6C177` + 白 0.78 → `#FDF1E1`、`#4A6FA5` + 白 0.78 → `#D7DFEB`、`#F6C177` + 黒 0.45 → `#876A41`)と、割合 0・1。計算で作った色は、`Color` 同士の `==` が内部の小数の差で失敗したので、`hexString` の文字列で比べる(2026-11-21)
   - `getLastDate`: 2026年2月(28日)、うるう年の2月、31日の月
 - `shrinkAndComp`(`ImageResizeTests.swift`): テスト用の画像は、ファイルを用意せず、`UIGraphicsImageRenderer` で作る(`scale` は 1。大きさが、そのままピクセル数になる)
   - `px` が 0、-1 → `shrinkSize`

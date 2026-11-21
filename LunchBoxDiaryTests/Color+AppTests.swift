@@ -51,4 +51,19 @@ struct ColorTests {
         #expect(color?.textColor.hexString == expect)
         #expect(color?.textColor == Color(hex: expect))
     }
+    
+    // Color.mixを通した値が期待通りか
+    @Test(arguments: [
+        ("#F6C177", Color.white, 0.78, "#FDF1E1"),
+        ("#4A6FA5", Color.white, 0.78, "#D7DFEB"),
+        ("#F6C177", Color.black, 0.45, "#876A41"),
+        ("#FFFFFF", Color.black, 1, "#000000"),
+        ("#FFFFFF", Color.black, 0, "#FFFFFF")
+    ])
+    func mixColor(origin: String, other: Color, ratio: Double, expect: String) {
+        let oriColor = Color(hex: origin)
+        let resultColor = oriColor?.mix(with: other, by: ratio)
+        
+        #expect(resultColor?.hexString == expect)
+    }
 }
