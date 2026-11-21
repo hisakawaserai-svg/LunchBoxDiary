@@ -47,6 +47,7 @@ struct StarFrameView: View {
                     .offset(x: 43, y: 16)
             } else {
                 Rectangle()
+                    .foregroundColor(color.textColor)
                     .frame(width: 240, height: 144)
                     .clipShape(.rect(cornerRadius: 14))
                     .frame(width: 326, alignment: .topLeading)
@@ -67,7 +68,7 @@ struct StarFrameView: View {
             .padding(.top, 170)
             .padding(.leading, 43)
         }
-        .frame(width: 326, height: 244)
+        .frame(width: 326, height: 244, alignment: .topLeading)
     }
 }
 

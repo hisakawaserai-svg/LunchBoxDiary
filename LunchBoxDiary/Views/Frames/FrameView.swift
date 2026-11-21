@@ -31,7 +31,7 @@ struct FrameView: View {
                 StarFrameView(color: color, image: image, title: title, date: date)
             }
         }
-        .frame(width: 326, height: 244)
+        .frame(width: 326, height: 244, alignment: .topLeading)
     }
 }
 

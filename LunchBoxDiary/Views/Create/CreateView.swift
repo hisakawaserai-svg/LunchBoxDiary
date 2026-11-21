@@ -47,71 +47,73 @@ struct CreateView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
+            VStack {
                 FrameView(theme: frameTheme, color: frameColor, image: uiImage, title: title, date: date)
-                Section(header: Text("")) {
-                    VStack(alignment: .leading) {
-                        TextField("タイトル", text: $title)
-                        HStack {
-                            if issues.contains(.titleEmpty) {
-                                textIssue(.titleEmpty)
-                            } else if issues.contains(.charLimit) {
-                                textIssue(.charLimit)
-                            } else {
-                                Text("全角は2文字分")
+                Form {
+                    Section(header: Text("")) {
+                        VStack(alignment: .leading) {
+                            TextField("タイトル", text: $title)
+                            HStack {
+                                if issues.contains(.titleEmpty) {
+                                    textIssue(.titleEmpty)
+                                } else if issues.contains(.charLimit) {
+                                    textIssue(.charLimit)
+                                } else {
+                                    Text("全角は2文字分")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text("\(titleCount) / \(titleMaxLength)")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(titleCount > titleMaxLength ? .red : .secondary)
+                            }
+                        }
+                        VStack(alignment: .leading) {
+                            PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, uiImage: $uiImage, screenWidthPt: screenWidthPt)
+                            textIssue(.noImage)
+                        }
+                        DatePicker(
+                            "日付",
+                            selection: $date,
+                            displayedComponents: [.date]
+                        )
+                        HStack {
+                            NavigationLink("イベント") { EventManageView(selection: $selectedEventIDs) }
+                            Spacer()
+                            Text("\(selectedEvents.count)件選択中")
+                        }
+                        HStack {
+                            NavigationLink("誰に") {
+                                WhoManageView(selection: $selectedWhoID)
                             }
                             Spacer()
-                            Text("\(titleCount) / \(titleMaxLength)")
-                                .font(.caption)
-                                .foregroundColor(titleCount > titleMaxLength ? .red : .secondary)
+                            Text(selectedWho?.name ?? "未選択")
                         }
+                        ColorPicker("フレーム色", selection: $frameColor, supportsOpacity: false)
+                        TextField("メモ", text: $memo, axis: .vertical)
+                            .textFieldStyle(.roundedBorder)
+                            .lineLimit(3...6)
                     }
-                    VStack(alignment: .leading) {
-                        PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, uiImage: $uiImage, screenWidthPt: screenWidthPt)
-                        textIssue(.noImage)
-                    }
-                    DatePicker(
-                        "日付",
-                        selection: $date,
-                        displayedComponents: [.date]
-                    )
-                    HStack {
-                        NavigationLink("イベント") { EventManageView(selection: $selectedEventIDs) }
-                        Spacer()
-                        Text("\(selectedEvents.count)件選択中")
-                    }
-                    HStack {
-                        NavigationLink("誰に") {
-                            WhoManageView(selection: $selectedWhoID)
-                        }
-                        Spacer()
-                        Text(selectedWho?.name ?? "未選択")
-                    }
-                    ColorPicker("フレーム色", selection: $frameColor, supportsOpacity: false)
-                    TextField("メモ", text: $memo, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(3...6)
                 }
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { dismiss() } label: { Image(systemName: "xmark") }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("保存") {
-                        let trimmedTitle: String = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                        
-                        // メモ
-                        let trimmedMemo: String = memo.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let recordMemo: String? = !trimmedMemo.isEmpty ? trimmedMemo : nil
-
-                        issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
-                    
-                        if issues.isEmpty, let mainImage, let thumbImage {
-                            modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: frameColor.hexString)))
-                            dismiss()
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { dismiss() } label: { Image(systemName: "xmark") }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("保存") {
+                            let trimmedTitle: String = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                            
+                            // メモ
+                            let trimmedMemo: String = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let recordMemo: String? = !trimmedMemo.isEmpty ? trimmedMemo : nil
+                            
+                            issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
+                            
+                            if issues.isEmpty, let mainImage, let thumbImage {
+                                modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: frameColor.hexString)))
+                                dismiss()
+                            }
                         }
                     }
                 }
