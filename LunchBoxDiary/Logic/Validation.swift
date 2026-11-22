@@ -8,16 +8,12 @@
 import Foundation
 
 enum ValidationIssue {
-    case titleEmpty
     case charLimit
     case noImage
     
     static func validate(title: String, mainImage: Data?, thumbImage: Data?) -> [ValidationIssue] {
         var issues: [ValidationIssue] = []
         
-        if title.isEmpty {
-            issues.append(.titleEmpty)
-        }
         if validChar(title) > titleMaxLength {
             issues.append(.charLimit)
         }
@@ -30,7 +26,6 @@ enum ValidationIssue {
     
     var message: String {
         switch self {
-        case .titleEmpty: return "タイトルを入力してください"
         case .charLimit: return "タイトルが長すぎます"
         case .noImage: return "画像を入力してください"
         }
@@ -46,3 +41,4 @@ func validChar(_ title: String) -> Int {
 }
 
 let titleMaxLength: Int = 48
+let defaultTitle = "お弁当"

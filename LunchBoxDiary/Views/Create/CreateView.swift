@@ -48,15 +48,13 @@ struct CreateView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                FrameView(theme: frameTheme, color: frameColor, image: uiImage, title: title, date: date)
+                FrameView(theme: frameTheme, color: frameColor, image: uiImage, title: normalizedString(title), date: date)
                 Form {
                     Section(header: Text("")) {
                         VStack(alignment: .leading) {
                             TextField("タイトル", text: $title)
                             HStack {
-                                if issues.contains(.titleEmpty) {
-                                    textIssue(.titleEmpty)
-                                } else if issues.contains(.charLimit) {
+                                if issues.contains(.charLimit) {
                                     textIssue(.charLimit)
                                 } else {
                                     Text("全角は2文字分")
@@ -102,16 +100,13 @@ struct CreateView: View {
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("保存") {
-                            let trimmedTitle: String = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let recordTitle = normalizedString(title)
+                            let recordMemo = normalizedString(memo)
                             
-                            // メモ
-                            let trimmedMemo: String = memo.trimmingCharacters(in: .whitespacesAndNewlines)
-                            let recordMemo: String? = !trimmedMemo.isEmpty ? trimmedMemo : nil
-                            
-                            issues = ValidationIssue.validate(title: trimmedTitle, mainImage: mainImage, thumbImage: thumbImage)
+                            issues = ValidationIssue.validate(title: recordTitle ?? "", mainImage: mainImage, thumbImage: thumbImage)
                             
                             if issues.isEmpty, let mainImage, let thumbImage {
-                                modelContext.insert(LunchBox(title: trimmedTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: frameColor.hexString)))
+                                modelContext.insert(LunchBox(title: recordTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: frameColor.hexString)))
                                 dismiss()
                             }
                         }

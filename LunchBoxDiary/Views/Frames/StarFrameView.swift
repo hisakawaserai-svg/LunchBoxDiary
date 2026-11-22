@@ -10,7 +10,7 @@ import SwiftUI
 struct StarFrameView: View {
     let color: Color
     let image: UIImage?
-    let title: String
+    let title: String?
     let date: Date
     private var dateText: String {
         let c = Calendar.app.dateComponents([.year, .month, .day], from: date)
@@ -58,7 +58,7 @@ struct StarFrameView: View {
                     .font(.custom("HiraMaruProN-W4", size: 12))
                     .opacity(0.9)
                     .foregroundColor(color.textColor)
-                Text(title)
+                Text(title ?? defaultTitle)
                     .font(.custom("HiraMaruProN-W4", size: 19))
                     .foregroundColor(color.textColor)
                     .lineLimit(2)

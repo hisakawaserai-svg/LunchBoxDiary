@@ -12,7 +12,7 @@ import Foundation
 final class LunchBox {
     @Attribute(.unique) var id: UUID
     
-    var title: String
+    var title: String?
     @Attribute(.externalStorage) var image: Data
     var thumbnail: Data
     var date: Date
@@ -22,7 +22,7 @@ final class LunchBox {
     var who: Who?
     var frame: Frame
     
-    init(id: UUID = UUID(), title: String, image: Data, thumbnail: Data, date: Date, memo: String?, events: [Event]?, who: Who?, frame: Frame) {
+    init(id: UUID = UUID(), title: String?, image: Data, thumbnail: Data, date: Date, memo: String?, events: [Event]?, who: Who?, frame: Frame) {
         self.id = id
         self.title = title
         self.image = image

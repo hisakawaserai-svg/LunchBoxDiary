@@ -11,7 +11,7 @@ struct FrameView: View {
     let theme: FrameTheme
     let color: Color
     let image: UIImage?
-    let title: String
+    let title: String?
     let date: Date
 
     private var colorA: Color { color.mix(with: .white, by: 0.78) }

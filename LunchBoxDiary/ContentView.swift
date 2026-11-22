@@ -21,7 +21,7 @@ struct ContentView: View {
                 ForEach(lunchBoxes) { lunch in
                     VStack(alignment: .leading) {
                         HStack {
-                            Text(lunch.title)
+                            Text(lunch.title ?? defaultTitle)
                             Text(lunch.date, format: .dateTime.year().month(.twoDigits).day(.twoDigits))
                         }
                         if let events = lunch.events {
