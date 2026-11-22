@@ -43,7 +43,7 @@ struct FrameView: View {
         
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1200, height: 1200), format: format)
         let data: Data = renderer.jpegData(withCompressionQuality: 1) { context in
-            UIColor.white.setFill()
+            UIColor.gray.setFill()
             context.fill(CGRect(x: 0, y: 0, width: 1200, height: 1200))
         }
         let uiImage = UIImage(data: data)
