@@ -10,7 +10,7 @@ import SwiftUI
 struct FrameView: View {
     let theme: FrameTheme
     let color: Color
-    let image: UIImage?
+    @Binding var image: UIImage?
     let title: String?
     let date: Date
 
@@ -26,9 +26,9 @@ struct FrameView: View {
             switch theme {
                 
             case .def:
-                StarFrameView(color: color, image: image, title: title, date: date)
+                StarFrameView(color: color, image: $image, title: title, date: date)
             case .stripe, .autumn, .polaroid, .cloud, .note, .star, .mascot:
-                StarFrameView(color: color, image: image, title: title, date: date)
+                StarFrameView(color: color, image: $image, title: title, date: date)
             }
         }
         .frame(width: 326, height: 244, alignment: .topLeading)
@@ -36,20 +36,23 @@ struct FrameView: View {
 }
 
 #Preview {
-    /// テスト用の画像を生成
-    var dummyData: UIImage? {
+    @Previewable @State var img: UIImage? = {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1.0
         
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1200, height: 1200), format: format)
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 900, height: 1200), format: format)
         let data: Data = renderer.jpegData(withCompressionQuality: 1) { context in
             UIColor.gray.setFill()
-            context.fill(CGRect(x: 0, y: 0, width: 1200, height: 1200))
+            context.fill(CGRect(x: 0, y: 0, width: 450, height: 1200))
+            UIColor.black.setFill()
+            context.fill(CGRect(x: 450, y: 0, width: 900, height: 1200))
         }
-        let uiImage = UIImage(data: data)
+        let uiImage = UIImage(data: data) ?? UIImage()
         
         return uiImage
-    }
+    }()
     
-    FrameView(theme: .def, color: .pink, image: dummyData, title: "春の彩り弁当 Lunch 2026 - Fresh Bento Box - Daily", date: Date())
+    NavigationStack {
+        FrameView(theme: .def, color: .pink, image: $img, title: "春の彩り弁当 Lunch 2026 - Fresh Bento Box - Daily", date: Date())
+    }
 }

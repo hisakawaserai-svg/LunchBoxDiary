@@ -21,7 +21,7 @@
 ## 技術
 
 - Swift / SwiftUI / SwiftData
-- 対象 OS: iOS 17 以上
+- 対象 OS: iOS 18 以上
 
 ## 資料
 

@@ -10,8 +10,6 @@ import PhotosUI
 
 struct PhotosPickerSection: View {
     @State private var selectedImage: PhotosPickerItem?
-    @Binding var mainImage: Data?
-    @Binding var thumbImage: Data?
     @Binding var uiImage: UIImage?
     
     @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
@@ -27,21 +25,18 @@ struct PhotosPickerSection: View {
     
     var body: some View {
         PhotosPicker("写真を選んでください", selection: $selectedImage, matching: .images)
-            .task(id: selectedImage) {
-                do {
-                    mainImage = nil
-                    uiImage = nil
-                    thumbImage = nil
-
-                    guard let data = try await selectedImage?.loadTransferable(type: Data.self) else { return }
-                    let resized = try shrinkAndComp(data, px: screenWidthPx(scale: scale, pt: screenWidthPt))
-                    mainImage = resized
-                    uiImage = UIImage(data: resized)
-                    thumbImage = try shrinkAndComp(data)
-                } catch let error as ImageResizeError {
-                    imageAlert = .resize(error)
-                } catch {
-                    imageAlert = .loadFailed
+            .onChange(of: selectedImage) {
+                Task {
+                    do {
+                        uiImage = nil
+                        guard let data = try await selectedImage?.loadTransferable(type: Data.self) else { return }
+                        let resized = try shrinkAndComp(data, px: screenWidthPx(scale: scale, pt: screenWidthPt))
+                        uiImage = UIImage(data: resized)
+                    } catch let error as ImageResizeError {
+                        imageAlert = .resize(error)
+                    } catch {
+                        imageAlert = .loadFailed
+                    }
                 }
             }
             .alert("エラー", isPresented: isAlertShow) {
@@ -49,16 +44,6 @@ struct PhotosPickerSection: View {
             } message: {
                 Text(imageAlert?.message ?? "")
             }
-        if let mainImage, let mainImg = UIImage(data: mainImage) {
-            Image(uiImage: mainImg)
-                .resizable()
-                .scaledToFit()
-        }
-        if let thumbImage, let thumbImg = UIImage(data: thumbImage) {
-            Image(uiImage: thumbImg)
-                .resizable()
-                .scaledToFit()
-        }
     }
 }
 

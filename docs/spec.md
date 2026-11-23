@@ -32,7 +32,7 @@
 - 家族の要望にはなく、こちらで足した機能: ホームのリスト表示(カレンダーとの切り替え)
 
 ### 動作条件
-- 対象 OS: iOS 17 以上(SwiftData を使うため)
+- 対象 OS: iOS 18 以上(SwiftData と、写真の拡大表示のズーム遷移 `.navigationTransition(.zoom)` を使うため。iOS 17 から上げた。決定20)
 - 家族は Android のため、Swift 版は家族の端末では動かない。Swift 版は iPhone で動作確認する
 - 開発方針: Swift で作り、のちに React Native へ移行して、家族に渡す予定。公開方法は検討中
 - 期間の目安: 1ヶ月。機能は絞る

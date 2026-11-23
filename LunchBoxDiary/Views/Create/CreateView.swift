@@ -11,6 +11,7 @@ import SwiftData
 struct CreateView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
     
     @State private var screenWidthPt: CGFloat = 0   // 写真の縮小に使う、画面の幅(pt)
     
@@ -48,7 +49,7 @@ struct CreateView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                FrameView(theme: frameTheme, color: frameColor, image: uiImage, title: normalizedString(title), date: date)
+                FrameView(theme: frameTheme, color: frameColor, image: $uiImage, title: normalizedString(title), date: date)
                 Form {
                     Section(header: Text("")) {
                         VStack(alignment: .leading) {
@@ -68,7 +69,7 @@ struct CreateView: View {
                             }
                         }
                         VStack(alignment: .leading) {
-                            PhotosPickerSection(mainImage: $mainImage, thumbImage: $thumbImage, uiImage: $uiImage, screenWidthPt: screenWidthPt)
+                            PhotosPickerSection(uiImage: $uiImage, screenWidthPt: screenWidthPt)
                             textIssue(.noImage)
                         }
                         DatePicker(
@@ -113,6 +114,11 @@ struct CreateView: View {
                     }
                 }
             }
+        }
+        .onChange(of: uiImage) {
+            let data = uiImage?.jpegData(compressionQuality: 1) ?? Data()
+            mainImage = try? shrinkAndComp(data, px: screenWidthPx(scale: scale, pt: screenWidthPt))
+            thumbImage = try? shrinkAndComp(data)
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { newWidthPt in
             screenWidthPt = newWidthPt

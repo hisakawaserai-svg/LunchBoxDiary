@@ -13,7 +13,7 @@
 | 言語 | Swift |
 | UI | SwiftUI |
 | 保存 | SwiftData |
-| 対象 OS | iOS 17 以上 |
+| 対象 OS | iOS 18 以上(iOS 17 から上げた。決定20) |
 
 **SwiftData を選んだ理由**
 - 永続化が標準で用意されている

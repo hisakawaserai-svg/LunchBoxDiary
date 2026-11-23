@@ -9,9 +9,9 @@ import SwiftUI
 
 struct StarFrameView: View {
     @AppStorage("decorationOpacity") private var decorationOpacity: Double = 0.7
-    
+
     let color: Color
-    let image: UIImage?
+    @Binding var image: UIImage?
     let title: String?
     let date: Date
     private var dateText: String {
@@ -34,11 +34,13 @@ struct StarFrameView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 326, height: 176, alignment: .topLeading)
-                    .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
+                PhotoLink(image: $image) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 326, height: 176, alignment: .center)
+                        .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
+                }
             } else {
                 Rectangle().fill(Color(hex: "#E3DBD3") ?? .gray)
                     .frame(width: 326, height: 176, alignment: .topLeading)
@@ -79,5 +81,23 @@ struct StarPosition {
 }
 
 #Preview {
-    FrameView(theme: .def, color: .pink, image: nil, title: "春の彩り弁当 Lunch 2026 - Fresh Bento Box - Daily", date: Date())
+    @Previewable @State var img: UIImage? = {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 900, height: 1200), format: format)
+        let data: Data = renderer.jpegData(withCompressionQuality: 1) { context in
+            UIColor.gray.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 450, height: 1200))
+            UIColor.black.setFill()
+            context.fill(CGRect(x: 450, y: 0, width: 900, height: 1200))
+        }
+        let uiImage = UIImage(data: data) ?? UIImage()
+        
+        return uiImage
+    }()
+    
+    NavigationStack {
+        FrameView(theme: .def, color: .pink, image: $img, title: "春の彩り弁当 Lunch 2026 - Fresh Bento Box - Daily", date: Date())
+    }
 }
