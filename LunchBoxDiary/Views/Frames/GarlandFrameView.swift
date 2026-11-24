@@ -90,7 +90,7 @@ struct GarlandFrameView: View {
                     .offset(x: flag.x, y: flag.y)
                 }
             }
-            .frame(width: 326, height: 244, alignment: .topLeading)
+            .frame(width: 326, height: 256, alignment: .topLeading)
             .opacity(decorationOpacity)
             .shadow(color: .black.opacity(0.28), radius: 1, y: 2)
             .clipShape(.rect(cornerRadius: 24))
@@ -112,7 +112,7 @@ struct GarlandFrameView: View {
             .frame(width: 266)
             .offset(x: 30, y: 194)
         }
-        .frame(width: 326, height: 244, alignment: .topLeading)
+        .frame(width: 326, height: 256, alignment: .topLeading)
     }
 }
 

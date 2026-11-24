@@ -26,12 +26,12 @@ struct FrameView: View {
             switch theme {
                 
             case .def:
-                StarFrameView(color: color, image: $image, title: title, date: date)
+                DefFrameView(color: color, image: $image, title: title, date: date)
             case .stripe, .autumn, .polaroid, .cloud, .note, .star, .mascot:
-                StarFrameView(color: color, image: $image, title: title, date: date)
+                DefFrameView(color: color, image: $image, title: title, date: date)
             }
         }
-        .frame(width: 326, height: 244, alignment: .topLeading)
+        .frame(width: 326, height: 256, alignment: .topLeading)
     }
 }
 

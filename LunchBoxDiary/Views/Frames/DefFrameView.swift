@@ -1,5 +1,5 @@
 //
-//  StarFrameView.swift
+//  DefFrameView.swift
 //  LunchBoxDiary
 //
 //  Created by h S. on 2026/11/21.
@@ -7,25 +7,11 @@
 
 import SwiftUI
 
-struct StarFrameView: View {
-    @AppStorage("decorationOpacity") private var decorationOpacity: Double = 0.7
-
+struct DefFrameView: View {
     let color: Color
     @Binding var image: UIImage?
     let title: String?
     let date: Date
-    
-    let starPositions: [StarPosition] = [
-        StarPosition(id: 0, x: 22, y: 6, size: 12),
-        StarPosition(id: 1, x: 268, y: 4, size: 9),
-        StarPosition(id: 2, x: 302, y: 70, size: 14),
-        StarPosition(id: 3, x: 8, y: 100, size: 10),
-        StarPosition(id: 4, x: 290, y: 212, size: 18),
-        StarPosition(id: 5, x: 22, y: 150, size: 9),
-        StarPosition(id: 6, x: 20, y: 232, size: 9),
-        StarPosition(id: 7, x: 312, y: 150, size: 8),
-        StarPosition(id: 8, x: 6, y: 34, size: 8),
-    ]
     
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -41,14 +27,6 @@ struct StarFrameView: View {
                 Rectangle().fill(Color(hex: "#E3DBD3") ?? .gray)
                     .frame(width: 326, height: 176, alignment: .topLeading)
                     .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-            }
-            ForEach(starPositions, id: \.id) { position in
-                Image(systemName: "star.fill")
-                    .offset(x: position.x, y: position.y)
-                    .font(.system(size: position.size))
-                    .foregroundColor(color.textColor)
-                    .opacity(decorationOpacity)
-                    .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
             }
             VStack(alignment: .leading, spacing: 3) {
                 Text(date.displayDate(.dot))
@@ -67,13 +45,6 @@ struct StarFrameView: View {
         }
         .frame(width: 326, height: 256, alignment: .topLeading)
     }
-}
-
-struct StarPosition {
-    let id: Int
-    let x: CGFloat
-    let y: CGFloat
-    let size: CGFloat
 }
 
 #Preview {

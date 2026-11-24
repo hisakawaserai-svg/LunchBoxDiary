@@ -77,7 +77,7 @@ erDiagram
 | 詳細 | シート。複数件のときは横にスワイプして切り替える |
 | 作成・編集 | 画面。1つで兼用する。写真の選択・縮小・エラー表示は、部品 `PhotosPickerSection` に分けた(2026-11-16)。`Views/Create/` に置き、作成画面でしか使わない。結果は `@Binding` で、メイン画像とサムネイルを、親に返す |
 | `FrameView`(大) | フレーム付きの完成カード(横長)。詳細と、作成・編集のプレビューで共有する共通部品。写真は、窓に合わせて `scaledToFill` で表示する(端が切れる) |
-| 写真の全体表示 | カードの写真を `Button` で囲み、押すと写真の全体を見せる(`scaledToFit`)。メイン画像を使う。全画面(`fullScreenCover`)で見せる(決定、2026-11-11)。拡大(ピンチ)できるか、閉じ方は未決 |
+| 写真の全体表示 | カードの写真を `PhotoLink`(`NavigationLink`)で包み、押すと写真の全体を見せる(`scaledToFit`)。ズーム遷移(iOS 18。`fullScreenCover` は、下から上がる動きが「拡大」に見えないため、やめた。決定20)。ツールバーに回転ボタン。ピンチ拡大は作らない(2026-11-23) |
 | フレーム(小) | カレンダーのマス用の、縦長の小さいカード。`FrameView`(大)とは、別の View として作る(写真の窓の比率が違い、縮小では作れないため) |
 
 **作成・編集の入力途中の扱い**
@@ -262,11 +262,14 @@ erDiagram
 - 利用者向けの文言は、`ImageError.message` に持たせる(`switch` で全ケースを書くので、ケースを足し忘れるとビルドで気づける)
   - `notImage`、`loadFailed` → 「写真を読み込めませんでした」
   - `shrinkSize`、`cantShrink`、`cantCompre` → 「うまく処理できませんでした」
-- 呼ぶ側の流れ(`PhotosPickerSection` の `.task(id: selectedImage)`。2026-11-16 に、`CreateView` から分けた)
-  1. 先に、メインとサムネイルの2つを `nil` に戻す(失敗したとき、前の写真を残さない。食い違いを防ぐ)
-  2. 写真を `Data` で読む
-  3. メイン用、サムネイル用の順に `shrinkAndComp` を呼ぶ
-  4. `ImageResizeError` は `.resize(error)` に包み、それ以外は `.loadFailed` にして、`imageAlert` に入れる(`.task` の中は投げられないので、最後は何でも受ける `catch` で終える)
+- 呼ぶ側の流れ(2026-11-23 に変更。以前は `PhotosPickerSection` の `.task(id: selectedImage)` で、メイン・サムネの `Data` まで作っていた)
+  - `PhotosPickerSection`(`.onChange(of: selectedImage)` の中の `Task { }`)
+    1. 先に、`uiImage` を `nil` に戻す(失敗したとき、前の写真を残さない)
+    2. 写真を `Data` で読む
+    3. 画面の幅に合わせて `shrinkAndComp` し、`UIImage` にして `uiImage` に入れる
+    4. `ImageResizeError` は `.resize(error)` に包み、それ以外は `.loadFailed` にして、`imageAlert` に入れる(`Task` の中は投げられないので、最後は何でも受ける `catch` で終える)
+  - `CreateView`(`.onChange(of: uiImage)`): `uiImage` から `Data`(圧縮率 1、途中用)を作り、`mainImage`(画面の幅)と `thumbImage`(200px)を `shrinkAndComp` で作る。失敗は `try?` で `nil` にする(保存のときの検査が、「写真を選択してください」を出す)。`uiImage` が、元の1つになった。写真の回転も、`uiImage` を書き換えるだけで、`Data` に反映される
+  - `.task(id:)` をやめた理由: 画面に戻るたびに再実行され、回転が、元の写真に上書きされたため
 - アラートは `imageAlert: ImageError?` の1つで管理する。`PhotosPickerSection` が持ち、`nil` でなければ表示し、閉じたら `nil` に戻す(`Binding(get:set:)` で `Bool` に変換)。親の `CreateView` は、写真のエラーを知らない
 - 保存は、保存ボタンを押したときだけ行う。変換に失敗しても、保存データには影響しない
 - 失敗後に、写真がない状態で保存ボタンを押したときは、入力の検証(下の「入力の検証」)が「写真を選択してください」を出す
@@ -345,38 +348,64 @@ erDiagram
 - 流れ: 1. 両方の色を `resolve(in:)` で成分に分ける 2. 成分ごとに式を当てる 3. `Color(red:green:blue:)` で作り直す
 - 比べ方: 計算で作った色は、`Color` 同士を `==` で比べず、`hexString` の文字列で比べる(決定13)
 
-## 8. フレーム(実装は「ほしの枠」の窓の版だけ。デザインは決定16〜18)
+## 8. フレーム(`def` と `garland` を実装。デザインは決定16〜18、21)
 
 - テーマごとに、別の View として作る(決定14)。ユーザーが選べるのは、テーマと色だけ
-- 大きさは、全テーマで同じ(大: 326×244、小: 52×68)
+- 大きさは、全テーマで同じ(大: 326×256、小: 52×68)。高さは 244 から 256 に変えた(下の紙の帯が狭く、2行のタイトルが窮屈だったため。2026-11-24、決定21)
 - デザインの方針(2026-11-22。決定16〜18)
-  - 写真は、カード上部の全面(上・左・右は端まで、下は直線。上から約176)。下の約68の帯に、文字を置く
+  - 写真は、カード上部の全面(上・左・右は端まで、下は直線。上から176)。下の約80の帯に、文字を置く
   - 飾りは、写真の上に重ねる。飾り全体に、同じ濃さをかける(アプリ全体の設定。0〜1、ステップ 0.1)
   - 採用: 10案+候補2案(決定17)。色は、基本色1つから計算する(決定13)
-- 実装の状況: `def` だけが、写真の窓(240×144)の版で実装済み。ほかは、キャンバスの案で、未実装(数値は、キャンバスから読む)
+- 実装の状況(2026-11-24): `def`(飾りなしの単色)と `garland`(19)。`garland` は、`FrameTheme` にケースを足して、`FrameView` の `switch` につなぐ作業が、まだ。ほかは未実装。キャンバスの数値は、高さ 244 のまま(実装するとき、256 に直して読む)
 
 **`FrameView`**
 
-- 入力: `theme`(`FrameTheme`)、`color`(`Color`)、`image`(`UIImage?`)、`title`(`String?`。`nil` のときは `defaultTitle`)、`date`(`Date`)
-- 役割: 背景の角丸(24)を色で塗り、`theme` で `switch` して、テーマの View を呼ぶ。大きさは 326×244 に固定
-- `switch`: `default` は付けず、未実装のテーマは、並べて書き、仮に `StarFrameView` を出す(ケースを足すと、ビルドエラーで気づく)
-- 色: 呼ぶ側が `Color` に直して渡す(保存済みの記録なら `Color(hex: frame.color) ?? .gray`)。`colorA`(白と 0.78)、`colorB`(白と 0.5)、`colorC`(黒と 0.45)は、`mix(with:by:)` で作れる形で置いたが、`def` では使わない(使うテーマが出たら、`Color` の拡張へ移す)
-- 拡縮、写真の `UIImage` への変換は、別(`open-issues.md`)
+- 入力: `theme`(`FrameTheme`)、`color`(`Color`)、`image`(`@Binding var image: UIImage?`。写真の回転を、作成画面の `uiImage` に書き戻すため)、`title`(`String?`。`nil` のときは `defaultTitle`)、`date`(`Date`)
+- 役割: 背景の角丸(24)を色で塗り、`theme` で `switch` して、テーマの View を呼ぶ。大きさは 326×256 に固定
+- `switch`: `default` は付けず、未実装のテーマは、並べて書き、仮に `DefFrameView` を出す(ケースを足すと、ビルドエラーで気づく)
+- 色: 呼ぶ側が `Color` に直して渡す(保存済みの記録なら `Color(hex: frame.color) ?? .gray`)。`colorA`(白と 0.78)、`colorB`(白と 0.5)、`colorC`(黒と 0.45)は、置いてあるが、今は使っていない(`garland` は、自分の View の中で、必要な割合を `mix(with:by:)` で作っている)
+- 拡縮は、別(`open-issues.md`)
 
-**`StarFrameView`(def: ほしの枠)**
+**`DefFrameView`(def。飾りなしの単色)**
 
-- 現行の実装は、写真の窓の版。全面写真への変更(決定16)は、未実装
-- 入力: `color`、`image`、`title`(`String?`)、`date`。326×244 に固定した `ZStack(alignment: .topLeading)`。位置は、すべて左上からの `offset`
-- 重ねる順番(下から): 星 → 写真の窓 → 文字
-- 星: `StarPosition`(左、上、大きさ)の配列を `ForEach` で並べる。`star.fill`。9個。`id` は手で振った固定の番号(以前の、作るたびに変わる `UUID()` の問題は、解消)。色は `textColor`(モックは白)。位置はモックの値
-- 写真の窓: 240×144、角の丸み 14、左から 43、上から 16。`image` が `nil` のときは、同じ大きさの四角を出す(背景が縮まないように)
-- 文字: 左から 43、上から 170。日付(12pt、不透明度 0.9)の下に、タイトル(19pt)。2行の間は 3。色は `textColor`。フォントは「ヒラギノ丸ゴ ProN W4」(Mac では名前を確認、iOS の実機・シミュレータは未)
-- 日付: 「2026.11.03」の形式。`Calendar.app` で年・月・日に分け、`String(format: "%d.%02d.%02d")`(月日は 0 埋め)。関数にはせず、View の中に書いた(2つ目の形式が出たら、`Date` の拡張に出す)
-- タイトルの箱: 幅 240 に固定(窓と同じ。左右の余白がそろう)、`lineLimit(2)`、`minimumScaleFactor(0.8)`。重み付きの文字数の上限は、決定15
+- 2026-11-24 に、星をすべて外した。`StarFrameView` から名前を変えた。星の版は、コミット 25bc61b までの履歴に残る
+- 入力: `color`、`image`(`@Binding`)、`title`(`String?`)、`date`。326×256 に固定した `ZStack(alignment: .topLeading)`
+- 写真: 326×176。上の角だけ丸み 24(`.clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))`)。`scaledToFill`、切り取りは中央(`alignment: .center`。`.topLeading` だと、縦長の写真の上だけが残った)。`image` が `nil` のときは、固定の淡い色(`#E3DBD3`)の四角
+- 文字: 左から 43、上から 186。日付(12pt、不透明度 0.9)の下に、タイトル(19pt)。色は `textColor`。フォントは「ヒラギノ丸ゴ ProN W4」(iOS での名前の確認は、未)
+- 日付: `date.displayDate(.dot)`
+- タイトルの箱: 幅 240、`lineLimit(2)`、`minimumScaleFactor(0.8)`。重み付きの文字数の上限は、決定15
+
+**`GarlandFrameView`(garland。キャンバス19。2026-11-23 に、Claude が下書きを作った)**
+
+- 入力は `DefFrameView` と同じ。背景は、斜めのグラデーション(薄い色 `mix(白, 0.35)` → 基本色(55%)→ 濃い色 `mix(黒, 0.12)`)
+- 写真は、`def` と同じ作り。写真と帯の境目に、白い線(幅3、y=174.5、薄い影)
+- 飾り(紐と旗7枚): 1つの層にして、`.opacity(decorationOpacity)`(`@AppStorage`、初期値 0.7)と影をかける。`allowsHitTesting(false)`(写真のタップを邪魔しない)。旗の色は、基本色から `mix` で作る。座標は、キャンバスの値(カードの左上が原点)
+- 文字: 帯の1行に、左にタイトル、右に日付(`displayDate`)。今は `.dot`(キャンバスの案は `.slash`。直す予定)
+
+**`PhotoLink`、`ImagePreviewView`(写真のタップで全体表示。決定20)**
+
+- `PhotoLink`: 写真の見た目(`@ViewBuilder` で受け取る)を `NavigationLink` で包み、ズーム遷移の出発点(`.matchedTransitionSource`)にする。`@Namespace` は、`PhotoLink` の中に持つ。`buttonStyle(.plain)`(青みがかるのを避ける)。別フォルダに置く予定(ほかの画面でも使うため)
+- `ImagePreviewView`: 行き先。全体表示(`scaledToFit`)と、ツールバーの回転ボタン(`rotate90()`)。`.navigationTransition(.zoom)` は、`PhotoLink` の中で付ける
+- 回転した画像は、`CreateView` の `uiImage` に書き戻され、`.onChange(of: uiImage)` で `mainImage`(画面の幅に縮小)と `thumbImage` の `Data` を作り直す。保存ボタンは、`Data` を見る
+- `@Binding var image: UIImage?` にした理由: `Binding($image)` で外した `Binding<UIImage>` は、写真を選び直して `nil` になった瞬間に、読んでクラッシュした(`ForceUnwrapping`)
+- 写真の読み込みは、`.task(id:)` ではなく `.onChange(of: selectedImage)` の中の `Task { }`。`.task` は、画面に戻るたびに再実行され、回転が元に戻ったため
+
+**回転(`UIImage+App.swift`)**
+
+- `UIImage.rotate90() -> UIImage`: `UIGraphicsImageRenderer`(`scale` は 1)で、縦横を入れ替えたキャンバスに描き直す。`translateBy`(キャンバスの中心へ)→ `rotate(by: .pi / 2)` → 元の大きさの半分を引いた位置に `draw`。時計回り
+- テスト(`UIImage+AppTests.swift`): 900×1200 を、1回 → 1200×900、2回 → 900×1200、4回 → 900×1200。向きは、テストしていない(シミュレーターで目で確認)
+
+**日付の表示(`Date+App.swift`)**
+
+- `enum DateStyle { dot, slash, kanji }`、`Date.displayDate(_ style:) -> String`。年月日は `Calendar.app` で分ける
+- 形式: dot `2026.11.05`、slash `2026/11/05`、kanji `2026年11月5日`(漢字は 0 埋めしない)
+- テーマへの割り当て(決定21): 01・17・20・24・25 は dot、15・19・27 は slash、16・23・29・30 は kanji。筆記体のフォント(20・24・25)には、「年月日」の漢字がなく、英語の月は、お母さんが読めないため、数字にした
+- テスト(`Date+AppTests.swift`): 2026年1月1日で、3形式(ゼロ埋めと、漢字のゼロなしを、同時に確かめる)
+
 - 未決・直す予定
-  - 写真がないときの四角の色(今は `Rectangle()` の既定色。グレーにする)
   - フォントを `fixedSize` にする(端末の文字サイズ設定の影響を受けないように)
-  - 小さいカードの作り(別の View。星は3つ)
+  - 小さいカードの作り(別の View)
+  - 写真の表示範囲(中央切り)の調整。縦長の写真は、約6割が切れる(`open-issues.md`)
 
 ## 9. テスト
 
@@ -410,10 +439,10 @@ erDiagram
 |---|---|---|
 | 月のカレンダー(月の切り替え、マスの表示) | 試作で検証済み。件数のバッジ、先頭1件のタイトル順は未 | 4章 |
 | 写真の縮小・圧縮・保存 | 検証済み。縦向きの写真の確認は未 | 5章 |
-| フレーム | 「ほしの枠」(def)の大きいカードを、窓の版で実装(`FrameView`、`StarFrameView`)。デザインは、10案+候補2案が決まり(決定16〜18)、実装は未。小さいカード、拡縮、飾りの濃さの設定は未 | 8章 |
+| フレーム | `def`(飾りなしの単色)と `garland`(19)を実装(`DefFrameView`、`GarlandFrameView`)。`garland` は、`FrameTheme` と `FrameView` への接続が未。デザインは、10案+候補2案が決まり(決定16〜18、21)、ほかは未実装。小さいカード、拡縮、飾りの濃さの設定画面は未 | 8章 |
 | 作成画面 | タイトル(任意)、写真、日付、メモ、イベント、誰に、フレームの色の入力と、必須項目(写真)と、タイトルの長さの検証まで実装。タイトルの長さの検証(重み付き)と、入力欄の文字数カウンターも実装。作成画面の上のプレビュー(`FrameView`、def 固定)も実装。フレームのテーマの選択(`TabView(.page)`)は未 | 3章、7章、8章 |
 | 詳細シート | 未着手。方針だけ決定(シート。複数件は横にスワイプ) | 3章 |
-| 写真の全体表示 | 未着手。`fullScreenCover` で作ることだけ決定 | 3章 |
+| 写真の全体表示 | 作成画面で実装(写真をタップ → ズーム遷移 → 回転ボタン。`PhotoLink`、`ImagePreviewView`。決定20)。詳細・編集画面での使用、回転ボタンの出し分け(詳細では隠す)は未 | 8章 |
 | リスト表示 | 未着手。並び順(古い順)・月の見出しは決定済み。表示する範囲は未決 | 11章、`open-issues.md` |
 | 検索・フィルター | 未着手。イベント名と「誰に」で絞ることは決定済み。絞り込み中の印の形などは未決 | 11章、`open-issues.md` |
 | 「誰に」「イベント」の登録・編集 | 登録・削除・検索・選択は実装(`EventManageView`、`WhoManageView`、`NameCheckResult`。決定8〜11)。編集、設定タブからの入口は未 | `decisions.md`、`open-issues.md` |
