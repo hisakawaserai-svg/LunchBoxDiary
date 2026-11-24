@@ -63,6 +63,6 @@ nonisolated struct Frame: Codable {
     var color: String
 }
 
-nonisolated enum FrameTheme: String, Codable {
+nonisolated enum FrameTheme: String, Codable, CaseIterable {
     case def, stripe, autumn, polaroid, cloud, note, star, mascot
 }

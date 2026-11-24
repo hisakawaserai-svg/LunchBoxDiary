@@ -43,7 +43,7 @@ struct DefFrameView: View {
             .padding(.top, 186)
             .padding(.leading, 43)
         }
-        .frame(width: 326, height: 256, alignment: .topLeading)
+        .frame(width: frameWidth, height: frameHeight, alignment: .topLeading)
     }
 }
 

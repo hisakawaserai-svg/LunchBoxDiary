@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+let frameWidth: CGFloat = 326
+let frameHeight: CGFloat = 256
+
 struct FrameView: View {
     let theme: FrameTheme
     let color: Color
@@ -31,7 +34,7 @@ struct FrameView: View {
                 DefFrameView(color: color, image: $image, title: title, date: date)
             }
         }
-        .frame(width: 326, height: 256, alignment: .topLeading)
+        .frame(width: frameWidth, height: frameHeight, alignment: .topLeading)
     }
 }
 

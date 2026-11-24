@@ -112,7 +112,7 @@ struct GarlandFrameView: View {
             .frame(width: 266)
             .offset(x: 30, y: 194)
         }
-        .frame(width: 326, height: 256, alignment: .topLeading)
+        .frame(width: frameWidth, height: frameHeight, alignment: .topLeading)
     }
 }
 

@@ -11,8 +11,8 @@ import SwiftData
 struct CreateView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
     
+    @Environment(\.displayScale) private var scale  // 1ポイントあたりのpx数
     @State private var screenWidthPt: CGFloat = 0   // 写真の縮小に使う、画面の幅(pt)
     
     @State private var title: String = ""
@@ -20,8 +20,10 @@ struct CreateView: View {
     @State private var thumbImage: Data?
     @State private var date: Date = Date()
     @State private var memo: String = ""
-    @State private var frameTheme: FrameTheme = .def
     @State private var frameColor: Color = .pink
+    
+    @State private var scrolledTheme: FrameTheme?
+    @State private var frameTheme: FrameTheme = .def
     
     @State private var selectedEventIDs: Set<UUID> = []
     @Query private var events: [Event]
@@ -49,7 +51,20 @@ struct CreateView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                FrameView(theme: frameTheme, color: frameColor, image: $uiImage, title: normalizedString(title), date: date)
+                ScrollView(.horizontal) {
+                    LazyHStack(spacing: 16) {
+                        ForEach(FrameTheme.allCases, id: \.self) { t in
+                            FrameView(theme: t, color: frameColor, image: $uiImage, title: normalizedString(title), date: date)
+                        }
+                    }
+                    .scrollTargetLayout()
+                }
+                .scrollPosition(id: $scrolledTheme)
+                .onChange(of: scrolledTheme) {
+                    if let scrolledTheme { frameTheme = scrolledTheme }
+                }
+                .contentMargins(.horizontal, max((screenWidthPt - frameWidth) / 2, 0), for: .scrollContent)
+                .scrollTargetBehavior(.viewAligned)
                 Form {
                     Section(header: Text("")) {
                         VStack(alignment: .leading) {
@@ -107,7 +122,7 @@ struct CreateView: View {
                             issues = ValidationIssue.validate(title: recordTitle ?? "", mainImage: mainImage, thumbImage: thumbImage)
                             
                             if issues.isEmpty, let mainImage, let thumbImage {
-                                modelContext.insert(LunchBox(title: recordTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: .def, color: frameColor.hexString)))
+                                modelContext.insert(LunchBox(title: recordTitle, image: mainImage, thumbnail: thumbImage, date: date.startOfDay, memo: recordMemo, events: selectedEvents, who: selectedWho, frame: Frame(theme: frameTheme, color: frameColor.hexString)))
                                 dismiss()
                             }
                         }
