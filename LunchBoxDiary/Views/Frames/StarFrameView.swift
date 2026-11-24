@@ -14,10 +14,6 @@ struct StarFrameView: View {
     @Binding var image: UIImage?
     let title: String?
     let date: Date
-    private var dateText: String {
-        let c = Calendar.app.dateComponents([.year, .month, .day], from: date)
-        return String(format: "%d.%02d.%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
-    }
     
     let starPositions: [StarPosition] = [
         StarPosition(id: 0, x: 22, y: 6, size: 12),
@@ -55,7 +51,7 @@ struct StarFrameView: View {
                     .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text(dateText)
+                Text(date.displayDate(.dot))
                     .font(.custom("HiraMaruProN-W4", size: 12))
                     .opacity(0.9)
                     .foregroundColor(color.textColor)
