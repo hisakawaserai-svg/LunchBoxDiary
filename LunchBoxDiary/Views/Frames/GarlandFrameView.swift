@@ -103,7 +103,7 @@ struct GarlandFrameView: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
                 Spacer(minLength: 8)
-                Text(date.displayDate(.dot))
+                Text(date.displayDate(.slash))
                     .font(.custom("HiraMaruProN-W4", size: 12))
                     .tracking(1)
                     .fixedSize()

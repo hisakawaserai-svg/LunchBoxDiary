@@ -17,10 +17,6 @@ struct FrameView: View {
     let title: String?
     let date: Date
 
-    private var colorA: Color { color.mix(with: .white, by: 0.78) }
-    private var colorB: Color { color.mix(with: .white, by: 0.5) }
-    private var colorC: Color { color.mix(with: .black, by: 0.45) }
-    
     var body: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 24)
@@ -28,9 +24,9 @@ struct FrameView: View {
             // 背景
             switch theme {
                 
-            case .def:
-                DefFrameView(color: color, image: $image, title: title, date: date)
-            case .stripe, .autumn, .polaroid, .cloud, .note, .star, .mascot:
+            case .def: DefFrameView(color: color, image: $image, title: title, date: date)
+            case .garland: GarlandFrameView(color: color, image: $image, title: title, date: date)
+            case .autumn, .polaroid, .cloud, .note, .star, .mascot:
                 DefFrameView(color: color, image: $image, title: title, date: date)
             }
         }
@@ -56,6 +52,6 @@ struct FrameView: View {
     }()
     
     NavigationStack {
-        FrameView(theme: .def, color: .pink, image: $img, title: "春の彩り弁当 Lunch 2026 - Fresh Bento Box - Daily", date: Date())
+        FrameView(theme: .garland, color: .pink, image: $img, title: "春の彩り弁当 Lunch 2026 - Fresh Bento Box - Daily", date: Date())
     }
 }

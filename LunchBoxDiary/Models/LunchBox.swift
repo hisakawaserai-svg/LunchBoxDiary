@@ -64,5 +64,5 @@ nonisolated struct Frame: Codable {
 }
 
 nonisolated enum FrameTheme: String, Codable, CaseIterable {
-    case def, stripe, autumn, polaroid, cloud, note, star, mascot
+    case def, garland, autumn, polaroid, cloud, note, star, mascot
 }
