@@ -17,19 +17,7 @@ struct DefFrameView: View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 24)
                 .fill(color)
-            if let image {
-                PhotoLink(image: $image) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 326, height: 176, alignment: .center)
-                        .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-                }
-            } else {
-                Rectangle().fill(Color(hex: "#E3DBD3") ?? .gray)
-                    .frame(width: 326, height: 176, alignment: .topLeading)
-                    .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-            }
+            PhotoView(image: $image)
             VStack(alignment: .leading, spacing: 3) {
                 Text(date.displayDate(.dot))
                     .font(.custom("HiraMaruProN-W4", size: 12))

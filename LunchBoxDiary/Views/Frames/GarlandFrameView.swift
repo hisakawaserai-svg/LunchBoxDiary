@@ -49,21 +49,7 @@ struct GarlandFrameView: View {
                     startPoint: UnitPoint(x: 0.35, y: 0),
                     endPoint: UnitPoint(x: 0.65, y: 1)
                 ))
-
-            // 写真(上部いっぱい。上の角だけ丸い)
-            if let image {
-                PhotoLink(image: $image) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 326, height: 176, alignment: .center)
-                        .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-                }
-            } else {
-                Rectangle().fill(Color(hex: "#E3DBD3") ?? .gray)
-                    .frame(width: 326, height: 176)
-                    .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-            }
+            PhotoView(image: $image)
 
             // 写真と紙の境目の白い線
             Rectangle()

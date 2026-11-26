@@ -56,7 +56,7 @@ struct FilmFrameView: View {
             .allowsHitTesting(false)
 
             // 写真(黒枠の太さ3の分だけ、左上にずらして置く)
-            photo
+            PhotoView(image: $image, width: 240, height: 144, radius: RectangleCornerRadii(2))
                 .padding(3)
                 .background(ink, in: .rect(cornerRadius: 3))
                 .shadow(color: ink.opacity(0.25), radius: 6, y: 6)
