@@ -19,14 +19,11 @@ struct FrameView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 24)
-                .fill(color)
-            // 背景
             switch theme {
-                
             case .def: DefFrameView(color: color, image: $image, title: title, date: date)
             case .garland: GarlandFrameView(color: color, image: $image, title: title, date: date)
-            case .autumn, .polaroid, .cloud, .note, .star, .mascot:
+            case .film: FilmFrameView(color: color, image: $image, title: title, date: date)
+            case .polaroid, .cloud, .note, .star, .mascot:
                 DefFrameView(color: color, image: $image, title: title, date: date)
             }
         }

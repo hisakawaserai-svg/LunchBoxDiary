@@ -15,6 +15,8 @@ struct DefFrameView: View {
     
     var body: some View {
         ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 24)
+                .fill(color)
             if let image {
                 PhotoLink(image: $image) {
                     Image(uiImage: image)
