@@ -91,6 +91,7 @@ struct GarlandFrameView: View {
                 }
             }
             .frame(width: 326, height: 256, alignment: .topLeading)
+            .compositingGroup()
             .opacity(decorationOpacity)
             .shadow(color: .black.opacity(0.28), radius: 1, y: 2)
             .clipShape(.rect(cornerRadius: 24))
